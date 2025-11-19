@@ -15,3 +15,4 @@ class Achievement(Base):
     earned_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="achievements")
+#для коммита

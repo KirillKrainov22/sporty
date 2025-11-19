@@ -20,3 +20,4 @@ class Challenge(Base):
 
     creator = relationship("User", back_populates="challenges_created", foreign_keys=[creator_id])
     target = relationship("User", back_populates="challenges_target", foreign_keys=[target_id])
+#для коммита

@@ -14,3 +14,4 @@ class Friend(Base):
 
     user = relationship("User", back_populates="friends", foreign_keys=[user_id])
     friend = relationship("User", back_populates="friends_of", foreign_keys=[friend_id])
+#для коммита

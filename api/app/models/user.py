@@ -24,3 +24,4 @@ class User(Base):
     friends_of = relationship("Friend", back_populates="friend", foreign_keys="Friend.friend_id")
     challenges_created = relationship("Challenge", back_populates="creator", foreign_keys="Challenge.creator_id")
     challenges_target = relationship("Challenge", back_populates="target", foreign_keys="Challenge.target_id")
+#для коммита
