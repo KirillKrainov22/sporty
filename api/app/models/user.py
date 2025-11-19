@@ -4,7 +4,7 @@ from datetime import datetime
 
 from . import Base
 
-
+# модель пользователя
 class User(Base):
     __tablename__ = "users"
 
