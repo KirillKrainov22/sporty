@@ -24,6 +24,7 @@ def get_mock_stats():
     # Здесь позже будет запрос в API:
     # response = requests.get(...)
     # return response.json()
+    #
 
     return {
         "today": 150,
