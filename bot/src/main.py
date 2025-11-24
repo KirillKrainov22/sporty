@@ -11,6 +11,8 @@ from src.handlers import leaderboard as leaderboard_handlers  # NEW
 from src.handlers import friends as friends_handlers
 from src.handlers import achievements as achievements_handlers
 from src.handlers import challenge as challenge_handlers
+from src.handlers import navigation as navigation_handlers
+
 async def main():
     print(">>> STARTING BOT...")
 
@@ -28,6 +30,7 @@ async def main():
     dp.include_router(friends_handlers.router)
     dp.include_router(achievements_handlers.router)
     dp.include_router(challenge_handlers.router)
+    dp.include_router(navigation_handlers.router)
 
     print("🤖 Bot is running...")
     await dp.start_polling(bot)
