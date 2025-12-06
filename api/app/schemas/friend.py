@@ -1,18 +1,14 @@
 from pydantic import BaseModel
 
-
-class FriendBase(BaseModel):
+class FriendCreate(BaseModel):
     user_id: int
     friend_id: int
-    status: str = "pending"  # pending / accepted / rejected и т.п.
 
 
-class FriendCreate(FriendBase):
-    pass
-
-
-class FriendRead(FriendBase):
+class FriendRead(BaseModel):
     id: int
+    user_id: int
+    friend_id: int
+    status: str
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
