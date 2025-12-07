@@ -1,24 +1,19 @@
-from datetime import date
-from typing import Optional
-
 from pydantic import BaseModel
+from datetime import datetime
 
-
-class ChallengeBase(BaseModel):
+class ChallengeCreate(BaseModel):
     creator_id: int
     target_id: int
     type: str
-    start_date: date
-    end_date: date
 
-
-class ChallengeCreate(ChallengeBase):
-    pass
-
-
-class ChallengeRead(ChallengeBase):
+class ChallengeRead(BaseModel):
     id: int
-    winner_id: Optional[int] = None
+    creator_id: int
+    target_id: int
+    type: str
+    start_date: datetime
+    end_date: datetime | None
+    winner_id: int | None
 
     class Config:
         from_attributes = True

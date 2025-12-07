@@ -1,39 +1,45 @@
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
-from app.db import get_db
+from app.db import get_session
 from app.models.friend import Friend
 from app.models.user import User
 from app.schemas.friend import FriendCreate, FriendRead
 
-router = APIRouter(tags=["Friends"])
+router = APIRouter(prefix="/api/friends", tags=["Friends"])
 
 
-@router.post(
-    "/friends",
-    response_model=FriendRead,
-    status_code=status.HTTP_201_CREATED,
-)
-async def add_friend(
-    friend_in: FriendCreate,
-    db: AsyncSession = Depends(get_db),
-):
-    # Проверим, что оба пользователя существуют
-    result = await db.execute(select(User).where(User.id == friend_in.user_id))
-    user = result.scalar_one_or_none()
-    result = await db.execute(select(User).where(User.id == friend_in.friend_id))
-    friend_user = result.scalar_one_or_none()
+@router.post("/", response_model=FriendRead)
+async def add_friend(payload: FriendCreate, db: AsyncSession = Depends(get_session)):
+    # Проверяем, что оба юзера существуют
+    result_user = await db.execute(select(User).filter(User.id == payload.user_id))
+    user = result_user.scalars().first()
 
-    if not user or not friend_user:
-        raise HTTPException(status_code=404, detail="User or friend not found")
+    result_friend = await db.execute(select(User).filter(User.id == payload.friend_id))
+    friend = result_friend.scalars().first()
 
-    relation = Friend(
-        user_id=friend_in.user_id,
-        friend_id=friend_in.friend_id,
-        status=friend_in.status,
+    if not user or not friend:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Создаём запись дружбы
+    new_friend = Friend(
+        user_id=payload.user_id,
+        friend_id=payload.friend_id,
+        status="pending"
     )
-    db.add(relation)
+
+    db.add(new_friend)
     await db.commit()
-    await db.refresh(relation)
-    return relation
+    await db.refresh(new_friend)
+
+    return new_friend
+
+
+@router.get("/users/{user_id}", response_model=list[FriendRead])
+async def get_friends(user_id: int, db: AsyncSession = Depends(get_session)):
+    result = await db.execute(
+        select(Friend).filter(Friend.user_id == user_id)
+    )
+    friends = result.scalars().all()
+    return friends
