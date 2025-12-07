@@ -33,3 +33,23 @@ def get_mock_stats():
         "total_workouts": 17,
         "avg_daily": 5.3
     }
+
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+async def my_stats_screen():
+    stats = get_mock_stats()
+
+    text = (
+        "📊 <b>Твоя статистика</b>\n\n"
+        f"Сегодня: <b>{stats['today']} очков</b>\n"
+        f"За неделю: <b>{stats['week']} очков</b>\n"
+        f"За месяц: <b>{stats['month']} очков</b>\n\n"
+        f"Всего тренировок: <b>{stats['total_workouts']}</b>\n"
+        f"Средняя активность: <b>{stats['avg_daily']} км/день</b>\n"
+    )
+
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⬅ Назад", callback_data="go:menu")]
+    ])
+
+    return text, kb
