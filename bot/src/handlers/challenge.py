@@ -172,3 +172,16 @@ async def decline_challenge(callback: CallbackQuery):
 
     await callback.message.answer("Вызов отклонён.")
     await callback.answer()
+
+
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+async def challenge_screen():
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Создать вызов", callback_data="challenge_create")],
+        [InlineKeyboardButton(text="Мои вызовы", callback_data="challenge_my")],
+        [InlineKeyboardButton(text="Входящие вызовы", callback_data="challenge_incoming")],
+        [InlineKeyboardButton(text="⬅ Назад", callback_data="go:menu")],
+    ])
+
+    return "Меню вызовов:", kb

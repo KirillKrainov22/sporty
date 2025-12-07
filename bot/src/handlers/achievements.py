@@ -77,3 +77,39 @@ async def achievements_handler(message: types.Message):
         text += unearned_text
 
     await message.answer(text)
+
+
+
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+async def achievements_screen():
+    achievements = FAKE_ACHIEVEMENTS
+
+    if not achievements:
+        return "Достижений пока нет.", InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text="⬅ Назад", callback_data="go:menu")]]
+        )
+
+    earned = "<b>Полученные достижения:</b>\n"
+    unearned = "\n<b>Недоступные достижения:</b>\n"
+    has_e = False
+    has_u = False
+
+    for ach in achievements:
+        if ach["earned"]:
+            earned += f"• {ach['title']}\n"
+            has_e = True
+        else:
+            unearned += f"• {ach['title']}\n"
+            has_u = True
+
+    text = ""
+    text += earned if has_e else "<b>Полученных достижений нет.</b>\n"
+    text += unearned if has_u else ""
+
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⬅ Назад", callback_data="go:menu")]
+    ])
+
+    return text, kb
+

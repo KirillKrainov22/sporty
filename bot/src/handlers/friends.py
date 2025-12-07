@@ -173,3 +173,52 @@ async def accept_friend(callback: CallbackQuery):
     )
 
     await callback.answer()
+
+
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+async def friends_screen():
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="➕ Добавить друга", callback_data="friends_add")],
+        [InlineKeyboardButton(text="📋 Мои друзья", callback_data="friends_list")],
+        [InlineKeyboardButton(text="✔ Принять заявки", callback_data="friends_requests")],
+        [InlineKeyboardButton(text="⬅ Назад", callback_data="go:menu")],
+    ])
+
+    return "Управление друзьями:", kb
+
+
+async def friends_list_screen():
+    if not FAKE_FRIENDS:
+        text = "У тебя пока нет друзей 😢"
+    else:
+        text = "👥 <b>Твои друзья</b>:\n\n"
+        for f in FAKE_FRIENDS:
+            text += f"• {f}\n"
+
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text="⬅ Назад", callback_data="go:friends")]]
+    )
+    return text, kb
+
+
+async def friends_requests_screen():
+    if not FAKE_REQUESTS:
+        text = "Нет новых заявок 🙌"
+        kb = InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text="⬅ Назад", callback_data="go:friends")]]
+        )
+        return text, kb
+
+    text = "📝 <b>Заявки в друзья</b>:\n\n"
+    keyboard = []
+
+    for username in FAKE_REQUESTS:
+        keyboard.append([
+            InlineKeyboardButton(text=f"✔ Принять: {username}", callback_data=f"accept_friend:{username}")
+        ])
+
+    keyboard.append([InlineKeyboardButton(text="⬅ Назад", callback_data="go:friends")])
+
+    return text, InlineKeyboardMarkup(inline_keyboard=keyboard)
+
