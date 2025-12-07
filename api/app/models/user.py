@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, BigInteger, DateTime
+from sqlalchemy import Column, Integer, String, BigInteger, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
@@ -16,6 +16,8 @@ class User(Base):
     level = Column(Integer, default=1)
 
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    is_banned = Column(Boolean, default=False)
 
     # Relationships
     activities = relationship("Activity", back_populates="user")

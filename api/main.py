@@ -6,17 +6,18 @@ from app.routers import (
     friends,
     challenges,
     leaderboard,
+    admin,
 )
 
 app = FastAPI(
     title="Sporty API",
-    version="0.1.0",
 )
 
-# если у тебя уже был какой-то healthcheck – оставь его
 
-app.include_router(users.router, prefix="/api")
-app.include_router(activities.router, prefix="/api")
-app.include_router(friends.router, prefix="/api")
-app.include_router(challenges.router, prefix="/api")
-app.include_router(leaderboard.router, prefix="/api")
+app.include_router(users.router)
+app.include_router(activities.router)
+app.include_router(friends.router)
+app.include_router(challenges.router)
+app.include_router(leaderboard.router)
+app.include_router(admin.router)
+# app.include_router(achievements.router)  # если есть

@@ -1,51 +1,84 @@
-from typing import List
-
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-
-from app.db import get_db
+from sqlalchemy import select, desc, or_
+from app.db import get_session
 from app.models.user import User
 from app.models.friend import Friend
-from app.schemas.user import UserRead
+from app.schemas.leaderboard import LeaderboardUser
 
-router = APIRouter(tags=["Leaderboard"])
+router = APIRouter(
+    prefix="/api/leaderboard",
+    tags=["Leaderboard"]
+)
 
 
-@router.get("/leaderboard", response_model=List[UserRead])
-async def get_global_leaderboard(
-    limit: int = Query(50, ge=1, le=100),
-    db: AsyncSession = Depends(get_db),
-):
-    result = await db.execute(
-        select(User).order_by(User.points.desc()).limit(limit)
+# ---------------------------
+# 1) ОБЩИЙ ЛИДЕРБОРД
+# ---------------------------
+@router.get("/", response_model=list[LeaderboardUser])
+async def get_global_leaderboard(db: AsyncSession = Depends(get_session)):
+    query = (
+        select(User.id, User.username, User.points)
+        .order_by(desc(User.points))
     )
-    users = result.scalars().all()
-    return users
+    result = await db.execute(query)
+    rows = result.all()
+
+    return [
+        LeaderboardUser(
+            user_id=row.id,
+            username=row.username,
+            points=row.points
+        )
+        for row in rows
+    ]
 
 
-@router.get("/leaderboard/friends", response_model=List[UserRead])
-async def get_friends_leaderboard(
-    user_id: int,
-    db: AsyncSession = Depends(get_db),
-):
-    # Проверяем, что юзер есть
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+# ---------------------------
+# 2) ЛИДЕРБОРД СРЕДИ ДРУЗЕЙ
+# ---------------------------
+@router.get("/friends/{user_id}", response_model=list[LeaderboardUser])
+async def get_friends_leaderboard(user_id: int, db: AsyncSession = Depends(get_session)):
 
-    # Подзапрос с id друзей
-    friends_subq = (
-        select(Friend.friend_id)
-        .where(Friend.user_id == user_id)
-        .subquery()
+    # Найдём друзей (accepted)
+    friends_query = select(Friend).where(
+        or_(
+            Friend.user_id == user_id,
+            Friend.friend_id == user_id
+        ),
+        Friend.status == "accepted"
     )
 
-    result = await db.execute(
-        select(User)
-        .where(User.id.in_(friends_subq))
-        .order_by(User.points.desc())
+    res = await db.execute(friends_query)
+    friend_rows = res.scalars().all()
+
+    if not friend_rows:
+        return []  # у пользователя пока нет друзей
+
+    # Составим список ID друзей
+    friend_ids = []
+
+    for fr in friend_rows:
+        if fr.user_id == user_id:
+            friend_ids.append(fr.friend_id)
+        else:
+            friend_ids.append(fr.user_id)
+
+    # запросим пользователей
+    users_query = (
+        select(User.id, User.username, User.points)
+        .where(User.id.in_(friend_ids))
+        .order_by(desc(User.points))
     )
-    friends = result.scalars().all()
-    return friends
+
+    res2 = await db.execute(users_query)
+    rows = res2.all()
+
+    return [
+        LeaderboardUser(
+            user_id=row.id,
+            username=row.username,
+            points=row.points
+        )
+        for row in rows
+    ]
