@@ -1,0 +1,92 @@
+import streamlit as st
+import plotly.graph_objects as go
+import plotly.express as px
+import pandas as pd
+
+# Our modules
+from modules.api_client import api
+from modules.cache import cache
+from modules.mock_data import MOCK_DATA
+from modules.data_utils import prepare_chart_data, calculate_metrics, format_activity_data
+
+# Page config
+st.set_page_config(
+    page_title="Sporty Dashboard",
+    page_icon="🏆",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+st.title("🏆 Sporty Dashboard")
+st.markdown("### Статистика активности")
+
+# Sidebar
+with st.sidebar:
+    st.markdown("### Настройки")
+    
+    user_id = st.number_input("ID пользователя", min_value=1, value=1)
+    
+    st.markdown("---")
+    st.markdown("### Управление кэшем")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Обновить данные", type="primary"):
+            cache.clear()
+            st.rerun()
+    
+    with col2:
+        if st.button("Очистить кэш API"):
+            api.clear_cache()
+            st.rerun()
+
+# Recent activities
+st.markdown("## 🏃 Последние активности")
+
+try:
+    # This would come from API
+    activities = []
+    if activities:
+        df = format_activity_data(activities[:5])
+        if not df.empty:
+            st.dataframe(df, use_container_width=True, hide_index=True)
+    else:
+        st.info("Нет недавних активностей")
+except:
+    st.info("Информация об активностях временно недоступна")
+
+# Activity distribution
+st.markdown("## 🎯 Распределение по типам")
+
+activity_dist = user_stats.get('activity_distribution', {})
+if not activity_dist:
+    activity_dist = {
+        "Бег": 35,
+        "Велосипед": 25, 
+        "Плавание": 20,
+        "Зал": 15,
+        "Йога": 5
+    }
+
+if activity_dist:
+    labels = list(activity_dist.keys())
+    values = list(activity_dist.values())
+    
+    fig_pie = px.pie(
+        values=values,
+        names=labels,
+        title='',
+        hole=0.4
+    )
+    fig_pie.update_layout(
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font_color='white',
+        height=400
+    )
+    
+    st.plotly_chart(fig_pie, use_container_width=True)
+
+# Footer
+st.markdown("---")
+st.caption("Sporty Dashboard • Данные обновляются автоматически • Кэш: 5 минут")
