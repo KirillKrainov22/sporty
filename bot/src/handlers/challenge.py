@@ -1,187 +1,209 @@
-from aiogram import Router, types
-from aiogram.filters import Command
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
-
-from aiogram.fsm.state import State, StatesGroup
-from aiogram.fsm.context import FSMContext
+from aiogram import Router, F
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 
 router = Router()
 
+#   Заглушечные данные
+FAKE_FRIENDS = ["kirill", "maxim", "anton"]
 
-#заглушки (вместо API)
+FAKE_MY_CHALLENGES = [
+    {"id": 1, "to": "maxim", "text": "Кто наберёт больше очков за неделю?"},
+]
 
-
-# список друзей — в будущем будет приходить из API
-FAKE_FRIENDS = ["kirill", "maxim", "dima"]
-
-# активные вызовы пользователя (created)
-FAKE_ACTIVE_CHALLENGES = []
-
-# входящие вызовы пользователя (incoming)
-FAKE_INCOMING_CHALLENGES = []
+FAKE_INCOMING_CHALLENGES = [
+    {"id": 2, "from": "kirill", "text": "Кто пробежит больше км за месяц?"},
+]
 
 
 
-# FSM для создания вызова
-class ChallengeState(StatesGroup):
-    choosing_friend = State()
-    choosing_type = State()
-
-
-
-# /challenge меню
-@router.message(Command("challenge"))
-async def challenge_menu(message: types.Message):
-
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Создать вызов", callback_data="challenge_create")],
-        [InlineKeyboardButton(text="Мои вызовы", callback_data="challenge_my")],
-        [InlineKeyboardButton(text="Входящие вызовы", callback_data="challenge_incoming")],
-    ])
-
-    await message.answer("Выбери действие:", reply_markup=keyboard)
-
-
-
-# Создать вызов → Выбор друга
-@router.callback_query(lambda c: c.data == "challenge_create")
-async def start_challenge(callback: CallbackQuery, state: FSMContext):
-
-    # Генерируем список друзей
-    keyboard = []
-    for friend in FAKE_FRIENDS:
-        keyboard.append([
-            InlineKeyboardButton(
-                text=friend,
-                callback_data=f"challenge_friend:{friend}"
-            )
-        ])
-
-    await callback.message.answer("Выбери друга:", reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
-    await state.set_state(ChallengeState.choosing_friend)
-    await callback.answer()
-
-
-#Пользователь выбрал друга → выбор типа вызова
-@router.callback_query(lambda c: c.data.startswith("challenge_friend:"))
-async def choose_challenge_type(callback: CallbackQuery, state: FSMContext):
-
-    friend = callback.data.split(":")[1]
-
-    # сохраняем выбранного друга во временное состояние FSM
-    await state.update_data(friend=friend)
-
-    keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Бег", callback_data="challenge_type:run")],
-        [InlineKeyboardButton(text="Шаги", callback_data="challenge_type:steps")],
-        [InlineKeyboardButton(text="Время", callback_data="challenge_type:time")],
-    ])
-
-    await callback.message.answer(f"Выбран: {friend}\nТеперь выбери тип вызова:", reply_markup=keyboard)
-    await state.set_state(ChallengeState.choosing_type)
-    await callback.answer()
-
-
-
-# Пользователь выбрал тип → создаём вызов
-@router.callback_query(lambda c: c.data.startswith("challenge_type:"))
-async def create_challenge(callback: CallbackQuery, state: FSMContext):
-
-    data = await state.get_data()
-    friend = data["friend"]
-
-    challenge_type = callback.data.split(":")[1]
-
-    # Создаём объект вызова в заглушке
-    challenge = {
-        "friend": friend,
-        "type": challenge_type,
-        "status": "pending"
-    }
-
-    # Добавляем "как будто" в БД
-    FAKE_ACTIVE_CHALLENGES.append(challenge)
-    FAKE_INCOMING_CHALLENGES.append(challenge)  # симуляция входящего вызова у друга
-
-    await state.clear()
-    await callback.message.answer(f"Вызов отправлен пользователю {friend}.")
-    await callback.answer()
-
-
-# Мои вызовы (созданные)
-@router.callback_query(lambda c: c.data == "challenge_my")
-async def show_my_challenges(callback: CallbackQuery):
-
-    if not FAKE_ACTIVE_CHALLENGES:
-        await callback.message.answer("У тебя нет активных вызовов.")
-        await callback.answer()
-        return
-
-    text = "<b>Твои вызовы:</b>\n\n"
-    for ch in FAKE_ACTIVE_CHALLENGES:
-        text += f"• {ch['friend']} — {ch['type']} — статус: {ch['status']}\n"
-
-    await callback.message.answer(text)
-    await callback.answer()
-
-
-#  Входящие вызовы (incoming)
-@router.callback_query(lambda c: c.data == "challenge_incoming")
-async def show_incoming(callback: CallbackQuery):
-
-    if not FAKE_INCOMING_CHALLENGES:
-        await callback.message.answer("Нет входящих вызовов.")
-        await callback.answer()
-        return
-
-    text = "<b>Входящие вызовы:</b>\n\n"
-
-    keyboard = []
-    for idx, ch in enumerate(FAKE_INCOMING_CHALLENGES):
-        text += f"• {ch['friend']} — {ch['type']}\n"
-        keyboard.append([
-            InlineKeyboardButton(text="Принять", callback_data=f"challenge_accept:{idx}"),
-            InlineKeyboardButton(text="Отклонить", callback_data=f"challenge_decline:{idx}")
-        ])
-
-    await callback.message.answer(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=keyboard))
-    await callback.answer()
-
-
-
-#   Принять вызов
-@router.callback_query(lambda c: c.data.startswith("challenge_accept:"))
-async def accept_challenge(callback: CallbackQuery):
-
-    idx = int(callback.data.split(":")[1])
-    ch = FAKE_INCOMING_CHALLENGES.pop(idx)
-    ch["status"] = "accepted"
-    FAKE_ACTIVE_CHALLENGES.append(ch)
-
-    await callback.message.answer("Вызов принят.")
-    await callback.answer()
-
-
-
-#Отклонить вызов
-@router.callback_query(lambda c: c.data.startswith("challenge_decline:"))
-async def decline_challenge(callback: CallbackQuery):
-
-    idx = int(callback.data.split(":")[1])
-    FAKE_INCOMING_CHALLENGES[idx]["status"] = "declined"
-
-    await callback.message.answer("Вызов отклонён.")
-    await callback.answer()
-
-
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+#   Базовые экраны
 
 async def challenge_screen():
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Создать вызов", callback_data="challenge_create")],
-        [InlineKeyboardButton(text="Мои вызовы", callback_data="challenge_my")],
-        [InlineKeyboardButton(text="Входящие вызовы", callback_data="challenge_incoming")],
-        [InlineKeyboardButton(text="⬅ Назад", callback_data="go:menu")],
-    ])
+    """
+    Используется из navigation.py при go:challenge.
+    Возвращает главный экран вызовов: текст + клавиатуру.
+    """
+    return await challenge_main_screen()
 
-    return "Меню вызовов:", kb
+
+async def challenge_main_screen():
+    text = (
+        "⚔️ <b>Вызовы</b>\n\n"
+        "Здесь можно посмотреть свои вызовы, входящие и создать новый."
+    )
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="📤 Мои вызовы", callback_data="ch:my")],
+        [InlineKeyboardButton(text="📥 Входящие вызовы", callback_data="ch:incoming")],
+        [InlineKeyboardButton(text="➕ Создать вызов", callback_data="ch:create")],
+        [InlineKeyboardButton(text="⬅ Меню", callback_data="ch:menu")],
+    ])
+    return text, kb
+
+
+async def my_challenges_screen():
+    if not FAKE_MY_CHALLENGES:
+        text = "📤 <b>Мои вызовы</b>\n\nПока нет активных вызовов."
+    else:
+        lines = ["📤 <b>Мои вызовы</b>\n"]
+        for ch in FAKE_MY_CHALLENGES:
+            lines.append(f"• @{ch['to']}: {ch['text']}")
+        text = "\n".join(lines)
+
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="⬅ Назад", callback_data="ch:back")],
+    ])
+    return text, kb
+
+
+async def incoming_challenges_screen():
+    if not FAKE_INCOMING_CHALLENGES:
+        text = "📥 <b>Входящие вызовы</b>\n\nНовых вызовов нет."
+        kb = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="⬅ Назад", callback_data="ch:back")],
+        ])
+        return text, kb
+
+    lines = ["📥 <b>Входящие вызовы</b>\n"]
+    kb_rows = []
+
+    for ch in FAKE_INCOMING_CHALLENGES:
+        lines.append(f"• @{ch['from']}: {ch['text']}")
+        kb_rows.append([
+            InlineKeyboardButton(text="✔ Принять", callback_data=f"ch:accept:{ch['id']}"),
+            InlineKeyboardButton(text="✖ Отклонить", callback_data=f"ch:decline:{ch['id']}"),
+        ])
+
+    kb_rows.append([InlineKeyboardButton(text="⬅ Назад", callback_data="ch:back")])
+
+    text = "\n".join(lines)
+    kb = InlineKeyboardMarkup(inline_keyboard=kb_rows)
+    return text, kb
+
+
+async def choose_friend_screen():
+    text = "👤 <b>Создание вызова</b>\n\nВыбери друга, которому хочешь бросить вызов:"
+    rows = []
+    for friend in FAKE_FRIENDS:
+        rows.append([
+            InlineKeyboardButton(
+                text=f"@{friend}",
+                callback_data=f"ch:friend:{friend}"
+            )
+        ])
+    rows.append([InlineKeyboardButton(text="⬅ Назад", callback_data="ch:back")])
+    kb = InlineKeyboardMarkup(inline_keyboard=rows)
+    return text, kb
+
+
+async def confirm_challenge_screen(friend: str):
+    text = (
+        f"⚔️ <b>Создать вызов для @{friend}</b>\n\n"
+        "Пока это заглушка: реальная логика (тип, цель, сроки) появится после подключения API.\n\n"
+        "Отправить тестовый вызов?"
+    )
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Отправить вызов", callback_data=f"ch:send:{friend}")],
+        [InlineKeyboardButton(text="⬅ Назад", callback_data="ch:create")],
+    ])
+    return text, kb
+
+
+# Обработчики колбэков
+
+@router.callback_query(F.data == "ch:my")
+async def show_my_challenges(callback: CallbackQuery):
+    text, kb = await my_challenges_screen()
+    await callback.message.edit_text(text, reply_markup=kb)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "ch:incoming")
+async def show_incoming_challenges(callback: CallbackQuery):
+    text, kb = await incoming_challenges_screen()
+    await callback.message.edit_text(text, reply_markup=kb)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "ch:create")
+async def create_challenge_start(callback: CallbackQuery):
+    text, kb = await choose_friend_screen()
+    await callback.message.edit_text(text, reply_markup=kb)
+    await callback.answer()
+
+
+@router.callback_query(lambda c: c.data.startswith("ch:friend:"))
+async def choose_friend(callback: CallbackQuery):
+    friend = callback.data.split(":")[2]
+    text, kb = await confirm_challenge_screen(friend)
+    await callback.message.edit_text(text, reply_markup=kb)
+    await callback.answer()
+
+
+@router.callback_query(lambda c: c.data.startswith("ch:send:"))
+async def send_challenge(callback: CallbackQuery):
+    friend = callback.data.split(":")[2]
+
+    # здесь можно будет дергать API; сейчас — просто добавляем в FAKE_MY_CHALLENGES
+    FAKE_MY_CHALLENGES.append({
+        "id": max([c["id"] for c in FAKE_MY_CHALLENGES] + [0]) + 1,
+        "to": friend,
+        "text": "Тестовый вызов (заглушка)",
+    })
+
+    text, kb = await my_challenges_screen()
+    await callback.message.edit_text(
+        "✅ Вызов отправлен!\n\n" + text,
+        reply_markup=kb,
+    )
+    await callback.answer()
+
+
+@router.callback_query(lambda c: c.data.startswith("ch:accept:"))
+async def accept_challenge(callback: CallbackQuery):
+    ch_id = int(callback.data.split(":")[2])
+    # имитация: убираем из входящих
+    for ch in list(FAKE_INCOMING_CHALLENGES):
+        if ch["id"] == ch_id:
+            FAKE_INCOMING_CHALLENGES.remove(ch)
+            break
+
+    text, kb = await incoming_challenges_screen()
+    await callback.message.edit_text(
+        "✔ Вызов принят!\n\n" + text,
+        reply_markup=kb,
+    )
+    await callback.answer()
+
+
+@router.callback_query(lambda c: c.data.startswith("ch:decline:"))
+async def decline_challenge(callback: CallbackQuery):
+    ch_id = int(callback.data.split(":")[2])
+    # имитация: убираем из входящих
+    for ch in list(FAKE_INCOMING_CHALLENGES):
+        if ch["id"] == ch_id:
+            FAKE_INCOMING_CHALLENGES.remove(ch)
+            break
+
+    text, kb = await incoming_challenges_screen()
+    await callback.message.edit_text(
+        "✖ Вызов отклонён.\n\n" + text,
+        reply_markup=kb,
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "ch:back")
+async def back_to_challenge_menu(callback: CallbackQuery):
+    text, kb = await challenge_main_screen()
+    await callback.message.edit_text(text, reply_markup=kb)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "ch:menu")
+async def back_to_main_menu(callback: CallbackQuery):
+    # возвращаемся в главное меню бота
+    from src.handlers.navigation import main_menu_ui
+
+    text, kb = main_menu_ui()
+    await callback.message.edit_text(text, reply_markup=kb)
+    await callback.answer()
