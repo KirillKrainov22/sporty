@@ -21,7 +21,7 @@ async def create_user(data: UserCreate, session: AsyncSession = Depends(get_sess
     existing_user = result.scalar_one_or_none()
 
     if existing_user:
-        raise HTTPException(status_code=400, detail="User already exists")
+        return existing_user
 
     new_user = User(
         telegram_id=data.telegram_id,
@@ -129,7 +129,10 @@ async def get_user_stats(
     ]
 
     # 6. Место в глобальном рейтинге
-    rank_stmt = select(func.count(User.id)).where(User.points > user.points)
+    rank_stmt = select(func.count(User.id)).where(
+        User.points > user.points,
+        User.is_banned == False
+    )
     higher_count = (await db.execute(rank_stmt)).scalar_one()
     global_rank = higher_count + 1
 

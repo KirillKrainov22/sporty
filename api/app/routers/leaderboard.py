@@ -19,6 +19,7 @@ router = APIRouter(
 async def get_global_leaderboard(db: AsyncSession = Depends(get_session)):
     query = (
         select(User.id, User.username, User.points)
+        .where(User.is_banned == False)
         .order_by(desc(User.points))
     )
     result = await db.execute(query)
@@ -67,8 +68,12 @@ async def get_friends_leaderboard(user_id: int, db: AsyncSession = Depends(get_s
     # запросим пользователей
     users_query = (
         select(User.id, User.username, User.points)
-        .where(User.id.in_(friend_ids))
+        .where(
+            User.id.in_(friend_ids),
+            User.is_banned == False
+        )
         .order_by(desc(User.points))
+
     )
 
     res2 = await db.execute(users_query)
