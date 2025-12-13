@@ -1,8 +1,21 @@
+
+.venv/
+
 # --- Python ---
-__pycache__/
+
+__pycache__
 *.pyc
 *.pyo
 *.pyd
+
+.Python
+env/
+venv/
+.idea/
+*.log
+*.sqlite3
+db.sqlite3
+
 *.pdb
 *.egg-info/
 *.egg
@@ -60,4 +73,5 @@ build/
 # --- Bot cache ---
 *.session
 *.session-journal
+
 
