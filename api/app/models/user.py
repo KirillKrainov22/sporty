@@ -11,13 +11,16 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     telegram_id = Column(BigInteger, unique=True, index=True)
     username = Column(String, nullable=True)
-
+    is_banned = Column(Boolean, default=False)
+    ban_reason = Column(String, nullable=True)
+    banned_at = Column(DateTime, nullable=True)
     points = Column(Integer, default=0)
     level = Column(Integer, default=1)
 
+
+
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    is_banned = Column(Boolean, default=False)
 
     # Relationships
     activities = relationship("Activity", back_populates="user")

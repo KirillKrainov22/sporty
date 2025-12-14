@@ -17,6 +17,7 @@ class UserRead(BaseModel):
     level: int
     created_at: datetime
 
+
     class Config:
         orm_mode = True
 
@@ -48,23 +49,6 @@ class UserStats(BaseModel):
     total_distance: float
     total_duration: int
 
-    global_rank: Optional[int] = None
-
-    daily_progress: List[DailyProgress]
-    weekly_progress: List[WeeklyProgress]
-    activity_type_stats: List[ActivityTypeStats]
-
-
-class UserStats(BaseModel):
-    user_id: int
-    username: str
-    points: int
-    level: int
-
-    total_activities: int
-    total_distance: float
-    total_duration: int
-
     global_rank: int
 
     daily_progress: List[dict]
@@ -73,3 +57,9 @@ class UserStats(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class AdminUserRead(UserRead):
+    is_banned: bool
+    ban_reason: str | None
+    banned_at: datetime | None

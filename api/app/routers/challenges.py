@@ -13,10 +13,31 @@ router = APIRouter(prefix="/api/challenges", tags=["Challenges"])
 @router.post("/", response_model=ChallengeRead)
 async def create_challenge(payload: ChallengeCreate, db: AsyncSession = Depends(get_session)):
     # Проверяем: существуют ли оба пользователя
-    for user_id in [payload.creator_id, payload.target_id]:
-        result = await db.execute(select(User).where(User.id == user_id))
-        if not result.scalar_one_or_none():
-            raise HTTPException(status_code=404, detail=f"User {user_id} not found")
+    # Проверяем creator
+    result = await db.execute(select(User).where(User.id == payload.creator_id))
+    creator = result.scalar_one_or_none()
+
+    if not creator:
+        raise HTTPException(status_code=404, detail="Creator not found")
+
+    if creator.is_banned:
+        raise HTTPException(status_code=403, detail="Creator is banned")
+
+    # Проверяем target
+    result = await db.execute(select(User).where(User.id == payload.target_id))
+    target = result.scalar_one_or_none()
+
+    if not target:
+        raise HTTPException(status_code=404, detail="Target not found")
+
+    if target.is_banned:
+        raise HTTPException(status_code=403, detail="Target is banned")
+
+    if payload.creator_id == payload.target_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Cannot create challenge for yourself"
+        )
 
     # Создаём челлендж
     challenge = Challenge(

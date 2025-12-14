@@ -22,6 +22,14 @@ async def add_friend(payload: FriendCreate, db: AsyncSession = Depends(get_sessi
     if not user or not friend:
         raise HTTPException(status_code=404, detail="User not found")
 
+    if user.is_banned:
+        raise HTTPException(status_code=403, detail="User is banned")
+
+    if friend.is_banned:
+        raise HTTPException(status_code=403, detail="Target user is banned")
+    if payload.user_id == payload.friend_id:
+        raise HTTPException(status_code=400, detail="Cannot add yourself as friend")
+
     # Создаём запись дружбы
     new_friend = Friend(
         user_id=payload.user_id,
