@@ -34,7 +34,7 @@ async def add_friend(payload: FriendCreate, db: AsyncSession = Depends(get_sessi
     new_friend = Friend(
         user_id=payload.user_id,
         friend_id=payload.friend_id,
-        status="pending"
+        status="accepted"
     )
 
     db.add(new_friend)
