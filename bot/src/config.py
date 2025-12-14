@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 load_dotenv()  # ищет .env в папке bot
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
+API_BASE_URL = os.getenv("API_BASE_URL", "http://api:8000").rstrip("/")
+
+
 
 if not BOT_TOKEN:
-    raise RuntimeError("❌ BOT_TOKEN не найден! Добавь его в файл .env в папке bot")
+    raise RuntimeError("❌ BOT_TOKEN не найден!")

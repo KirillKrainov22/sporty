@@ -1,3 +1,8 @@
+import requests
+from src.services import api_client
+from src.services.api_client import ApiError
+
+
 from aiogram import Router, F
 from aiogram.types import (
     Message,
@@ -19,16 +24,6 @@ class AddActivity(StatesGroup):
     entering_duration = State()
 
 
-#       МОК ПОД API (ПРОСТО ФУНКЦИЯ)
-def calculate_points(activity_type: str, distance: float, duration: int) -> int:
-    base = {
-        "run": 10,
-        "bike": 5,
-        "swim": 12,
-        "workout": 7
-    }.get(activity_type, 5)
-
-    return int(base * distance + duration * 0.5)
 
 
 
@@ -172,18 +167,52 @@ async def input_duration(message: Message, state: FSMContext):
     duration = int(txt)
     data = await state.get_data()
 
-    points = calculate_points(
-        data["activity_type"],
-        data["distance"],
-        duration
-    )
+    # duration сейчас в минутах (по твоему UX), а API ждёт секунды
+    duration_minutes = int(txt)
+    duration_seconds = duration_minutes * 60
+
+    data = await state.get_data()
+    user_id = data.get("user_id")
+
+    # если user_id не найден (например, юзер не нажал /start), создаём/получаем
+    if not user_id:
+        telegram_id = message.from_user.id
+        username = message.from_user.username
+        try:
+            user = api_client.ensure_user(telegram_id=telegram_id, username=username)
+            user_id = user["id"]
+            await state.update_data(user_id=user_id)
+        except (requests.exceptions.RequestException, ApiError):
+            await message.answer("⚠️ Сервис временно недоступен. Попробуй позже.")
+            return
+
+    try:
+        activity = api_client.create_activity(
+            user_id=user_id,
+            activity_type=data["activity_type"],
+            distance=float(data["distance"]),
+            duration_seconds=duration_seconds,
+        )
+    except ApiError as e:
+        if e.status_code == 403:
+            await message.answer("⛔ Доступ запрещён.")
+        elif e.status_code == 404:
+            await message.answer("😢 Пользователь не найден. Нажми /start.")
+        else:
+            await message.answer("⚠️ Ошибка сервера. Попробуй позже.")
+        return
+    except requests.exceptions.RequestException:
+        await message.answer("⚠️ Сервис временно недоступен. Попробуй позже.")
+        return
 
     msg = await message.answer(
         f"🏁 <b>Тренировка добавлена!</b>\n\n"
         f"Тип: {data['activity_type']}\n"
         f"Дистанция: {data['distance']} км\n"
-        f"Время: {duration} мин\n"
-        f"Очки: <b>{points}</b>",
+        f"Время: {duration_minutes} мин\n"
+        f"Очки: <b>{activity.get('points', 0)}</b>\n"
+        f"<i>Если очки начисляются не сразу — они обновятся позже.</i>",
+
         reply_markup=InlineKeyboardMarkup(
             inline_keyboard=[
                 [InlineKeyboardButton(text="➕ Добавить ещё", callback_data="act:again")],
