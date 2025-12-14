@@ -70,9 +70,7 @@ async def navigate(callback: CallbackQuery, state: FSMContext):
     # Статистика
     if target == "my_stats":
         from src.handlers.my_stats import my_stats_screen
-        telegram_id = callback.from_user.id
-        username = callback.from_user.username
-        text, kb = await my_stats_screen(state, telegram_id, username)
+        text, kb = await my_stats_screen()
         return await update_screen(callback, text, kb)
 
     #  Друзья
@@ -101,9 +99,7 @@ async def navigate(callback: CallbackQuery, state: FSMContext):
 
     # История
     if target == "history":
-        from src.handlers.history import history_screen
-        text, kb = await history_screen()
-        return await update_screen(callback, text, kb)
+        return await update_screen(callback, "История пока не реализована.", main_menu_ui()[1])
 
     #  Профиль
     if target == "profile":
