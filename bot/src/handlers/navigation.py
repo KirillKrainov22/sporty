@@ -70,7 +70,9 @@ async def navigate(callback: CallbackQuery, state: FSMContext):
     # Статистика
     if target == "my_stats":
         from src.handlers.my_stats import my_stats_screen
-        text, kb = await my_stats_screen()
+        telegram_id = callback.from_user.id
+        username = callback.from_user.username
+        text, kb = await my_stats_screen(state, telegram_id, username)
         return await update_screen(callback, text, kb)
 
     #  Друзья
