@@ -1,34 +1,51 @@
 from aiogram import Router, types
 from aiogram.filters import Command
-import requests
-from src.services import api_client
-from src.services.api_client import ApiError
-from aiogram.fsm.context import FSMContext
 
 router = Router()
 
+@router.message(Command("my_stats"))
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
-async def my_stats_screen(state: FSMContext, telegram_id: int, username: str | None):
-    data = await state.get_data()
-    user_id = data.get("user_id")
-
-    if not user_id:
-        user = api_client.ensure_user(telegram_id, username)
-        user_id = user["id"]
-        await state.update_data(user_id=user_id)
-
-    stats = api_client.get_user_stats(user_id)
+async def my_stats(message: types.Message):
+    stats = get_mock_stats()
 
     text = (
         "📊 <b>Твоя статистика</b>\n\n"
-        f"Очки: <b>{stats['points']}</b>\n"
-        f"Уровень: <b>{stats['level']}</b>\n"
-        f"Место в рейтинге: <b>{stats['global_rank']}</b>\n\n"
-        f"Всего активностей: <b>{stats['total_activities']}</b>\n"
-        f"Дистанция всего: <b>{stats['total_distance']}</b> км\n"
-        f"Время всего: <b>{int(stats['total_duration'] / 60)}</b> мин\n"
+        f"За сегодня: <b>{stats['today']} очков</b>\n"
+        f"За неделю: <b>{stats['week']} очков</b>\n"
+        f"За месяц: <b>{stats['month']} очков</b>\n\n"
+        f"Всего тренировок: <b>{stats['total_workouts']}</b>\n"
+        f"Средняя активность: <b>{stats['avg_daily']} км/день</b>"
+    )
+
+    await message.answer(text)
+
+
+def get_mock_stats():
+    # Здесь позже будет запрос в API:
+    # response = requests.get(...)
+    # return response.json()
+    #
+
+    return {
+        "today": 150,
+        "week": 420,
+        "month": 1200,
+        "total_workouts": 17,
+        "avg_daily": 5.3
+    }
+
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+async def my_stats_screen():
+    stats = get_mock_stats()
+
+    text = (
+        "📊 <b>Твоя статистика</b>\n\n"
+        f"Сегодня: <b>{stats['today']} очков</b>\n"
+        f"За неделю: <b>{stats['week']} очков</b>\n"
+        f"За месяц: <b>{stats['month']} очков</b>\n\n"
+        f"Всего тренировок: <b>{stats['total_workouts']}</b>\n"
+        f"Средняя активность: <b>{stats['avg_daily']} км/день</b>\n"
     )
 
     kb = InlineKeyboardMarkup(inline_keyboard=[
