@@ -7,6 +7,7 @@ from app.routers import (
     challenges,
     leaderboard,
     admin,
+    achievements,
 )
 
 app = FastAPI(
@@ -20,7 +21,7 @@ app.include_router(friends.router)
 app.include_router(challenges.router)
 app.include_router(leaderboard.router)
 app.include_router(admin.router)
-# app.include_router(achievements.router)  # если есть
+app.include_router(achievements.router)
 
 # пока не надо кбирать комменты тк не запуститься сваггер. Сейчас все эндпоинты работают
 # @app.on_event("startup")
