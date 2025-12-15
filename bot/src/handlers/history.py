@@ -1,14 +1,14 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
-# ==================================================
-#        API-заглушка (ПОТОМ ЗАМЕНИМ НА HTTP)
-# ==================================================
+
+#        api заглушка
 async def get_history_data(user_id: int):
     """
-    Сейчас возвращает заглушку.
-    Потом здесь будет запрос к API наример такой:
+    cейчас возвращаем заглушку.
+    потом здесь должен быть запрос к API
 
+    пример:
     async with aiohttp.ClientSession() as session:
         async with session.get(
             f"http://api:8000/history/{user_id}"
@@ -33,8 +33,6 @@ async def get_history_data(user_id: int):
     ]
 
 
-
-# UI-ЭКРАН
 
 async def history_screen(user_id: int | None = None):
     history = await get_history_data(user_id)
