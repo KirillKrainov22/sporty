@@ -8,18 +8,16 @@ from app.models.user import User
 from app.models.activity import Activity
 
 
-# -------------------------------------------------
-# 1. ПОЛУЧИТЬ ВСЕХ ПОЛЬЗОВАТЕЛЕЙ (АДМИНКА)
-# -------------------------------------------------
+# получить всех пользователей (админка)
+
 async def get_all_users(db: AsyncSession) -> List[User]:
     stmt = select(User).order_by(User.id)
     result = await db.execute(stmt)
     return result.scalars().all()
 
 
-# -------------------------------------------------
-# 2. БАН / РАЗБАН ПОЛЬЗОВАТЕЛЯ
-# -------------------------------------------------
+# бан/разбан пользователя
+
 async def set_ban_status(
     db: AsyncSession,
     user_id: int,
@@ -34,7 +32,7 @@ async def set_ban_status(
     if user is None:
         return None
 
-    # --- ВАЖНО: логический бан ---
+    # логический бан
     if is_banned:
         user.is_banned = True
         user.banned_at = datetime.utcnow()
@@ -49,9 +47,8 @@ async def set_ban_status(
     return user
 
 
-# -------------------------------------------------
-# 3. НАЧИСЛЕНИЕ / СПИСАНИЕ ОЧКОВ (АДМИНКА)
-# -------------------------------------------------
+# начисление / списание очков (админка)
+
 async def add_points(
     db: AsyncSession,
     user_id: int,
@@ -72,12 +69,11 @@ async def add_points(
     return user
 
 
-# -------------------------------------------------
-# 4. ОБЩАЯ СИСТЕМНАЯ СТАТИСТИКА (АДМИНКА)
-# -------------------------------------------------
+# общая системная статистика (админка)
+
 async def get_system_statistics(db: AsyncSession) -> dict:
 
-    # --- Количество НЕ забаненных пользователей ---
+    # количество НЕ забаненных пользователей
     total_users = (
         await db.execute(
             select(func.count(User.id))
@@ -85,7 +81,7 @@ async def get_system_statistics(db: AsyncSession) -> dict:
         )
     ).scalar_one()
 
-    # --- Активные пользователи за сегодня ---
+    # Активные пользователи за сегодня
     active_today = (
         await db.execute(
             select(func.count(func.distinct(Activity.user_id)))
@@ -97,19 +93,19 @@ async def get_system_statistics(db: AsyncSession) -> dict:
         )
     ).scalar_one() or 0
 
-    # --- Общее количество активностей ---
+    # Общее количество активностей
     total_activities = (
         await db.execute(select(func.count(Activity.id)))
     ).scalar_one()
 
-    # --- Активности по типам ---
+    # Активности по типам
     rows = await db.execute(
         select(Activity.type, func.count(Activity.id))
         .group_by(Activity.type)
     )
     activities_by_type = {row[0]: row[1] for row in rows.all()}
 
-    # --- Суммарные очки (только НЕ забаненные) ---
+    # Суммарные очки (только НЕ забаненные)
     total_points = (
         await db.execute(
             select(func.coalesce(func.sum(User.points), 0))
@@ -117,7 +113,7 @@ async def get_system_statistics(db: AsyncSession) -> dict:
         )
     ).scalar_one()
 
-    # --- ТОП-5 пользователей (без забаненных) ---
+    # ТОП-5 пользователей (без забаненных)
     top_users_result = await db.execute(
         select(User)
         .where(User.is_banned == False)

@@ -12,7 +12,7 @@ engine = create_async_engine(
     future=True,
 )
 
-# Фабрика сессий
+
 async_session_maker = sessionmaker(
     bind=engine,
     class_=AsyncSession,
