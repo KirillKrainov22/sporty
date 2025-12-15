@@ -4,10 +4,8 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 router = Router()
 
-# -----------------------------------
-#      ЗАГЛУШКИ (потом API)
-# -----------------------------------
 
+#      ЗАГЛУШКИ (потом API)
 # Пример списка достижений (как будто из БД)
 # earned=True  → пользователь получил достижение
 # earned=False → пока нет
@@ -22,22 +20,16 @@ FAKE_ACHIEVEMENTS = [
 
 async def get_user_achievements():
     """
-    Возвращает достижения пользователя.
-    Сейчас — заглушка.
+    возвращает достижения пользователя.
+    сейчас заглушка
 
     Потом здесь будет запрос к API:
-        async with session.get("http://api/users/{id}/achievements") as resp:
-            return await resp.json()
-
-    Формат должен совпадать с FAKE_ACHIEVEMENTS.
+    формат должен совпадать с FAKE_ACHIEVEMENTS.
     """
     return FAKE_ACHIEVEMENTS
 
 
-# -----------------------------------
-#          КОМАНДА /achievements
-# -----------------------------------
-
+# КОМАНДА /achievements
 @router.message(Command("achievements"))
 async def achievements_handler(message: types.Message):
     """
@@ -81,7 +73,7 @@ async def achievements_handler(message: types.Message):
 
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-
+# экран
 async def achievements_screen():
     achievements = FAKE_ACHIEVEMENTS
 
@@ -112,4 +104,5 @@ async def achievements_screen():
     ])
 
     return text, kb
+
 
