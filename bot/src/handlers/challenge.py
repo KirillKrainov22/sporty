@@ -17,16 +17,7 @@ FAKE_INCOMING_CHALLENGES = [
 
 
 #   Базовые экраны
-
 async def challenge_screen():
-    """
-    Используется из navigation.py при go:challenge.
-    Возвращает главный экран вызовов: текст + клавиатуру.
-    """
-    return await challenge_main_screen()
-
-
-async def challenge_main_screen():
     text = (
         "⚔️ <b>Вызовы</b>\n\n"
         "Здесь можно посмотреть свои вызовы, входящие и создать новый."
@@ -38,12 +29,14 @@ async def challenge_main_screen():
         [InlineKeyboardButton(text="⬅ Меню", callback_data="ch:menu")],
     ])
     return text, kb
+    ## функция прост возвр данные для UI
 
 
 async def my_challenges_screen():
     if not FAKE_MY_CHALLENGES:
         text = "📤 <b>Мои вызовы</b>\n\nПока нет активных вызовов."
     else:
+        # если есть то формируем список
         lines = ["📤 <b>Мои вызовы</b>\n"]
         for ch in FAKE_MY_CHALLENGES:
             lines.append(f"• @{ch['to']}: {ch['text']}")
@@ -54,7 +47,7 @@ async def my_challenges_screen():
     ])
     return text, kb
 
-
+# экран входящих вызовов
 async def incoming_challenges_screen():
     if not FAKE_INCOMING_CHALLENGES:
         text = "📥 <b>Входящие вызовы</b>\n\nНовых вызовов нет."
@@ -65,7 +58,7 @@ async def incoming_challenges_screen():
 
     lines = ["📥 <b>Входящие вызовы</b>\n"]
     kb_rows = []
-
+    ## проходим по всем и создаем 2 кнопки для каждого (принять и отклонить)
     for ch in FAKE_INCOMING_CHALLENGES:
         lines.append(f"• @{ch['from']}: {ch['text']}")
         kb_rows.append([
@@ -79,7 +72,7 @@ async def incoming_challenges_screen():
     kb = InlineKeyboardMarkup(inline_keyboard=kb_rows)
     return text, kb
 
-
+## создание вызова и выбор друга
 async def choose_friend_screen():
     text = "👤 <b>Создание вызова</b>\n\nВыбери друга, которому хочешь бросить вызов:"
     rows = []
@@ -108,13 +101,14 @@ async def confirm_challenge_screen(friend: str):
     return text, kb
 
 
-# Обработчики колбэков
+# Обработчики колбэков (они выводят экраныыыыы)
 
 @router.callback_query(F.data == "ch:my")
 async def show_my_challenges(callback: CallbackQuery):
     text, kb = await my_challenges_screen()
     await callback.message.edit_text(text, reply_markup=kb)
     await callback.answer()
+    ## тут от my_challenges_screen прилетают данные и бот отвечает (callback.answer())
 
 
 @router.callback_query(F.data == "ch:incoming")
@@ -194,7 +188,7 @@ async def decline_challenge(callback: CallbackQuery):
 
 @router.callback_query(F.data == "ch:back")
 async def back_to_challenge_menu(callback: CallbackQuery):
-    text, kb = await challenge_main_screen()
+    text, kb = await challenge_screen()
     await callback.message.edit_text(text, reply_markup=kb)
     await callback.answer()
 

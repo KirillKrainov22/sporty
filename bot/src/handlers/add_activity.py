@@ -12,14 +12,14 @@ router = Router()
 
 
 
-#        FSM СОСТОЯНИЯ
+#  FSM СОСТОЯНИЯ
 class AddActivity(StatesGroup):
     choosing_type = State()
     entering_distance = State()
     entering_duration = State()
 
 
-#       МОК ПОД API (ПРОСТО ФУНКЦИЯ)
+#   МОК ПОД API
 def calculate_points(activity_type: str, distance: float, duration: int) -> int:
     base = {
         "run": 10,
@@ -32,7 +32,7 @@ def calculate_points(activity_type: str, distance: float, duration: int) -> int:
 
 
 
-#        УДАЛЕНИЕ ВСЕХ СООБЩЕНИЙ FSM
+# УДАЛЕНИЕ ВСЕХ СООБЩЕНИЙ FSM
 async def clear_fsm_messages(state: FSMContext, event: CallbackQuery | Message):
     data = await state.get_data()
 
@@ -47,7 +47,7 @@ async def clear_fsm_messages(state: FSMContext, event: CallbackQuery | Message):
         else event.chat.id
     )
 
-    # Удаляем все сообщения, кроме меню
+    # Удаляем все сообщения  кроме меню
     for msg_id in msgs:
         if msg_id == menu_id:
             continue
@@ -60,7 +60,7 @@ async def clear_fsm_messages(state: FSMContext, event: CallbackQuery | Message):
 
 
 
-#      СОХРАНЕНИЕ MESSAGE_ID
+# СОХРАНЕНИЕ MESSAGE_ID
 async def remember_message(state: FSMContext, message: Message):
     data = await state.get_data()
     msgs = data.get("msgs", [])
@@ -69,7 +69,7 @@ async def remember_message(state: FSMContext, message: Message):
 
 
 
-#      КЛАВИАТУРА ТИПОВ АКТИВНОСТЕЙ
+#  КЛАВИАТУРА ТИПОВ АКТИВНОСТЕЙ
 def activity_type_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
         [
@@ -87,13 +87,13 @@ def activity_type_keyboard():
 
 
 
-#       СТАРТ ADD ACTIVITY
+# СТАРТ ADD ACTIVITY
 @router.message(F.text == "/add_activity")
 async def add_activity_command(message: Message, state: FSMContext):
 
     await state.clear()
 
-    # сохраняем id меню, чтобы потом не удалить
+    # сохраняем id меню чтоб потом не удалить
     await state.update_data(menu_id=message.message_id, msgs=[message.message_id])
 
     await state.set_state(AddActivity.choosing_type)
@@ -106,7 +106,7 @@ async def add_activity_command(message: Message, state: FSMContext):
 
 
 
-#         ВЫБОР ТИПА АКТИВНОСТИ
+# ВЫБОР ТИПА АКТИВНОСТИ
 @router.callback_query(F.data.startswith("act:type"))
 async def choose_activity_type(callback: CallbackQuery, state: FSMContext):
 
@@ -127,7 +127,7 @@ async def choose_activity_type(callback: CallbackQuery, state: FSMContext):
 
 
 
-#         ВВОД ДИСТАНЦИИ
+# ВВОД ДИСТАНЦИИ
 @router.message(AddActivity.entering_distance)
 async def input_distance(message: Message, state: FSMContext):
 
@@ -156,7 +156,7 @@ async def input_distance(message: Message, state: FSMContext):
 
 
 
-#         ВВОД ВРЕМЕНИ
+# ВВОД ВРЕМЕНИ
 @router.message(AddActivity.entering_duration)
 async def input_duration(message: Message, state: FSMContext):
 
@@ -195,7 +195,7 @@ async def input_duration(message: Message, state: FSMContext):
 
 
 
-#         ДОБАВИТЬ ЕЩЁ
+# ДОБАВИТЬ ЕЩЁ
 @router.callback_query(F.data == "act:again")
 async def again(callback: CallbackQuery, state: FSMContext):
 
@@ -204,7 +204,7 @@ async def again(callback: CallbackQuery, state: FSMContext):
 
 
 
-#         ОТМЕНА
+# ОТМЕНА
 @router.callback_query(F.data == "act:cancel")
 async def cancel(callback: CallbackQuery, state: FSMContext):
 
@@ -213,7 +213,7 @@ async def cancel(callback: CallbackQuery, state: FSMContext):
 
 
 
-#         В МЕНЮ
+# В МЕНЮ
 @router.callback_query(F.data == "act:menu")
 async def back_to_menu(callback: CallbackQuery, state: FSMContext):
 

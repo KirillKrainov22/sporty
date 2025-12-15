@@ -9,9 +9,8 @@ router = Router()
 # функция обновления UI
 async def update_screen(callback: CallbackQuery, text: str, kb: InlineKeyboardMarkup):
     """
-    обновляет текущее сообщение: заменяет текст и кнопки.
-    если сообщение было отправлено ботом  -> редактирует.
-    если невозможно -> отправит  новое.
+    пытается редачить уже отправленное ботом сообщение..
+    если невозможно (любой ecxeption))  и отправит  новое.
     """
     try:
         await callback.message.edit_text(text, reply_markup=kb)
@@ -60,10 +59,9 @@ async def navigate(callback: CallbackQuery, state: FSMContext):
         text, kb = main_menu_ui()
         return await update_screen(callback, text, kb)
 
-    # Добавить активность (FSM — исключение)
+    # Добавить активность FSM
     if target == "add_activity":
         from src.handlers.add_activity import add_activity_command
-        # FSM не может быть чистым экраном → запускаем логику
         await callback.answer()
         return await add_activity_command(callback.message, state)
 
