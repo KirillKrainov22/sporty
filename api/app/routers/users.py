@@ -11,9 +11,8 @@ from app.schemas.user import UserStats
 
 router = APIRouter(prefix="/api/users", tags=["Users"])
 
-# ------------------------------
 # 1) CREATE USER
-# ------------------------------
+
 @router.post("/", response_model=UserRead)
 async def create_user(data: UserCreate, session: AsyncSession = Depends(get_session)):
     # Проверяем, есть ли пользователь
@@ -37,9 +36,8 @@ async def create_user(data: UserCreate, session: AsyncSession = Depends(get_sess
     return new_user
 
 
-# ------------------------------
 # 2) GET USER BY TELEGRAM ID
-# ------------------------------
+
 @router.get("/{telegram_id}", response_model=UserRead)
 async def get_user(telegram_id: int, session: AsyncSession = Depends(get_session)):
     result = await session.execute(select(User).where(User.telegram_id == telegram_id))

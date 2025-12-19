@@ -21,9 +21,8 @@ router = APIRouter(
 
 @router.get("/users", response_model=list[AdminUserItem])
 async def list_users(db: AsyncSession = Depends(get_session)):
-    """
-    Список всех пользователей для админки.
-    """
+
+    #Список всех пользователей для админки.
     users = await admin_service.get_all_users(db)
     return users
 
@@ -34,11 +33,11 @@ async def ban_or_unban_user(
     payload: AdminUserBanRequest,
     db: AsyncSession = Depends(get_session),
 ):
-    """
-    Бан / разбан пользователя.
-    is_banned = true  -> бан
-    is_banned = false -> разбан
-    """
+
+    # Бан / разбан пользователя.
+    # is_banned = true  -> бан
+    # is_banned = false -> разбан
+
     user = await admin_service.set_ban_status(db, user_id, payload.is_banned)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -51,10 +50,10 @@ async def add_points(
     payload: AdminPointsRequest,
     db: AsyncSession = Depends(get_session),
 ):
-    """
-    Ручное начисление / списание очков.
-    amount может быть отрицательным.
-    """
+
+    # Ручное начисление / списание очков.
+    # amount может быть отрицательным.
+
     user = await admin_service.add_points(db, payload.user_id, payload.amount)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
@@ -64,9 +63,9 @@ async def add_points(
 
 @router.get("/statistics", response_model=AdminSystemStatistics)
 async def get_statistics(db: AsyncSession = Depends(get_session)):
-    """
-    Общая статистика системы.
-    """
+
+    #Общая статистика системы.
+
     stats = await admin_service.get_system_statistics(db)
     return stats
 #для коммита

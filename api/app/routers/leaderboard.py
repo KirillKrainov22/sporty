@@ -12,9 +12,8 @@ router = APIRouter(
 )
 
 
-# ---------------------------
 # 1) ОБЩИЙ ЛИДЕРБОРД
-# ---------------------------
+
 @router.get("/", response_model=list[LeaderboardUser])
 async def get_global_leaderboard(db: AsyncSession = Depends(get_session)):
     query = (
@@ -35,9 +34,8 @@ async def get_global_leaderboard(db: AsyncSession = Depends(get_session)):
     ]
 
 
-# ---------------------------
 # 2) ЛИДЕРБОРД СРЕДИ ДРУЗЕЙ
-# ---------------------------
+
 @router.get("/friends/{user_id}", response_model=list[LeaderboardUser])
 async def get_friends_leaderboard(user_id: int, db: AsyncSession = Depends(get_session)):
 
