@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 from datetime import datetime
 import plotly.graph_objects as go
 
@@ -11,7 +11,7 @@ st.set_page_config(
 st.title("👥 Друзья и рейтинги")
 
 st.info(
-    "🔧 Локальный режим\n\n"
+    "🏆 Локальный режим\n\n"
     "Используются тестовые данные. "
     "Страница готова к подключению реального API."
 )
@@ -29,9 +29,9 @@ FRIENDS = [
 MY_POINTS = 1250
 
 tab1, tab2, tab3 = st.tabs([
-    "📋 Список друзей",
-    "📊 Сравнение",
-    "⚡ Вызовы"
+    "👥 Список друзей",
+    "⚖️ Сравнение",
+    "⚔️ Вызовы"
 ])
 
 
@@ -55,8 +55,8 @@ with tab1:
                 col1, col2, col3, col4 = st.columns([3, 2, 2, 2])
 
                 col1.write(f"**{friend['username']}**")
-                col2.write(f"🏆 {friend['points']} очков")
-                col3.write(f"📊 Уровень {friend['level']}")
+                col2.write(f"⭐ {friend['points']} очков")
+                col3.write(f"⭐ Уровень {friend['level']}")
 
                 with col4:
                     if st.button(
@@ -130,7 +130,7 @@ with tab2:
     )
 
     for i, user in enumerate(sorted_users, 1):
-        medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
+        medal = "??" if i == 1 else "??" if i == 2 else "??" if i == 3 else f"{i}."
         st.write(f"{medal} **{user['name']}** — {user['points']} очков")
 
 with tab3:
@@ -161,7 +161,7 @@ with tab3:
         "гордое звание чемпиона"
     )
 
-    if st.button("🎯 Бросить вызов", type="primary"):
+    if st.button("🥊 Бросить вызов", type="primary"):
         st.success(
             f"Вызов брошен!\n\n"
             f"Друг: **{selected_friend}**\n"

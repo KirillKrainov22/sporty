@@ -1,8 +1,7 @@
-import streamlit as st
+﻿import streamlit as st
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
-
-USE_API = False
+from modules.config import USE_API, TEST_USER_ID
 
 st.set_page_config(
     page_title="Детальная статистика",
@@ -61,7 +60,7 @@ fig.update_layout(
 st.plotly_chart(fig, use_container_width=True)
 
 
-st.subheader("📌 Ключевые показатели")
+st.subheader("📊 Ключевые показатели")
 
 col1, col2, col3 = st.columns(3)
 
@@ -76,7 +75,7 @@ if USE_API:
     st.success("Данные получены из backend API")
 else:
     st.info(
-        "🔧 Локальный режим\n\n"
+        "?? Локальный режим\n\n"
         "Используются тестовые данные. "
     )
 

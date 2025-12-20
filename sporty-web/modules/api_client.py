@@ -1,4 +1,4 @@
-import requests
+﻿import requests
 import streamlit as st
 
 
@@ -111,4 +111,8 @@ class APIClient:
             st.error(f"API POST error: {e}")
             return None
 
-api = APIClient(base_url="http://localhost:8000")
+import os
+
+BASE_URL = os.environ.get("API_BASE_URL", "http://localhost:8000")
+api = APIClient(base_url=BASE_URL)
+

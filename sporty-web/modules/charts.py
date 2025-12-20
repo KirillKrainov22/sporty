@@ -1,4 +1,4 @@
-# modules/charts.py (окончательная версия БЕЗ pandas)
+﻿# modules/charts.py (окончательная версия БЕЗ pandas)
 import plotly.graph_objects as go
 from typing import List, Dict
 
