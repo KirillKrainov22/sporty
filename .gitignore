@@ -1,76 +1,102 @@
-.venv/
-
-# --- Python ---
-__pycache__
+# ======================
+# Python
+# ======================
+__pycache__/
 *.pyc
 *.pyo
 *.pyd
 .Python
-env/
-venv/
-.idea/
-*.log
-*.sqlite3
-db.sqlite3
-*.pdb
 *.egg-info/
 *.egg
 *.so
 
-# --- Virtual env ---
+# ======================
+# Virtual environments
+# ======================
 .env
 .venv/
 venv/
+env/
 
-# --- Environment files ---
-# настоящее .env не пушим, но пример оставляем
-api/.env
-bot/.env
-worker/.env
-web/.env
+# ======================
+# Logs / runtime
+# ======================
+*.log
+*.pid
+*.pdb
 
-# --- PyCharm / VSCode ---
+# ======================
+# Databases
+# ======================
+*.sqlite3
+db.sqlite3
+*.db
+
+# ======================
+# IDEs
+# ======================
 .idea/
 .vscode/
 *.iml
 
-# --- System ---
+# ======================
+# OS
+# ======================
 .DS_Store
 Thumbs.db
 
-# --- Docker ---
+# ======================
+# Docker / volumes
+# ======================
 postgres_data/
 docker-data/
-*.log
 
-# --- Alembic cache ---
+# ======================
+# Alembic
+# ======================
 alembic.ini.cache
 
-# --- Local sqlite if appears ---
-*.db
-
-# --- Python build ---
+# ======================
+# Python build artifacts
+# ======================
 build/
 dist/
 *.spec
 
-# --- Tests / coverage ---
+# ======================
+# Tests / coverage
+# ======================
 .coverage
 htmlcov/
 .cache/
 .pytest_cache/
 junit.xml
 
-# --- Node / frontend (если появится web-dashboard) ---
+# ======================
+# Node / frontend (if added later)
+# ======================
 node_modules/
 dist/
 build/
 
-# --- Bot cache ---
+# ======================
+# Bot cache
+# ======================
 *.session
 *.session-journal
 
-# --- Project folders (DO NOT IGNORE!) ---
+# ======================
+# Environment files per service
+# (real .env ignored, examples allowed)
+# ======================
+api/.env
+bot/.env
+worker/.env
+web/.env
+
+# ======================
+# IMPORTANT: project folders (DO NOT IGNORE)
+# ======================
 !api/
 !bot/
 !worker/
