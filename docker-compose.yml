@@ -1,1 +1,52 @@
-# docker-compose skeleton — will be filled later
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15
+    container_name: sporty_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: sporty
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  api:
+    build:
+      context: ./api
+    container_name: sporty_api
+    env_file:
+      - .env
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    restart: always
+
+  bot:
+    build:
+      context: ./bot
+    container_name: sporty_bot
+    env_file:
+      - .env
+    depends_on:
+      - api
+    restart: always
+
+  web:
+    build:
+      context: ./sporty-web
+    container_name: sporty_web
+    env_file:
+      - .env
+    depends_on:
+      - api
+    ports:
+      - "8501:8501"
+    restart: always
+
+volumes:
+  postgres_data:

@@ -1,16 +1,103 @@
+# ======================
 # Python
+# ======================
 __pycache__/
 *.pyc
-.env
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+*.egg
+*.so
 
-# Docker
+# ======================
+# Virtual environments
+# ======================
+.env
+.venv/
+venv/
+env/
+
+# ======================
+# Logs / runtime
+# ======================
 *.log
 *.pid
+*.pdb
 
-# IDE 
-.vscode/
+# ======================
+# Databases
+# ======================
+*.sqlite3
+db.sqlite3
+*.db
+
+# ======================
+# IDEs
+# ======================
 .idea/
+.vscode/
+*.iml
 
+# ======================
 # OS
+# ======================
 .DS_Store
 Thumbs.db
+
+# ======================
+# Docker / volumes
+# ======================
+postgres_data/
+docker-data/
+
+# ======================
+# Alembic
+# ======================
+alembic.ini.cache
+
+# ======================
+# Python build artifacts
+# ======================
+build/
+dist/
+*.spec
+
+# ======================
+# Tests / coverage
+# ======================
+.coverage
+htmlcov/
+.cache/
+.pytest_cache/
+junit.xml
+
+# ======================
+# Node / frontend (if added later)
+# ======================
+node_modules/
+dist/
+build/
+
+# ======================
+# Bot cache
+# ======================
+*.session
+*.session-journal
+
+# ======================
+# Environment files per service
+# (real .env ignored, examples allowed)
+# ======================
+api/.env
+bot/.env
+worker/.env
+web/.env
+
+# ======================
+# IMPORTANT: project folders (DO NOT IGNORE)
+# ======================
+!api/
+!bot/
+!worker/
+!sporty-web/
