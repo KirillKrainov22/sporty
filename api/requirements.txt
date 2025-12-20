@@ -1,9 +1,8 @@
+pydantic-settings
 fastapi
-uvicorn
-sqlalchemy[asyncio]
+uvicorn[standard]
+sqlalchemy
 asyncpg
 pydantic
-pydantic-settings
-greenlet
-alembic
-aiokafka==0.12.0
+python-dotenv
+aiokafka

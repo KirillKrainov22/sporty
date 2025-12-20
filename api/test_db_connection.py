@@ -1,6 +1,6 @@
 import asyncio
 from sqlalchemy import text
-from common.db import engine
+from api.app.db import engine
 
 async def test():
     try:

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select, insert, func
+from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import get_session
-from app.models.user import User
+from app.models import User
 from app.schemas.user import UserCreate, UserRead
-from app.models.activity import Activity
+from app.models import Activity
 from app.schemas.user import UserStats
 
 
