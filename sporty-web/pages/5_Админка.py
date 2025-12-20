@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 from datetime import datetime
 import plotly.graph_objects as go
 
@@ -11,7 +11,7 @@ st.set_page_config(
 st.title("⚙️ Административная панель")
 
 st.info(
-    "🔧 Локальный режим\n\n"
+    "?? Локальный режим\n\n"
     "Админка работает на тестовых данных. "
     "Готова к подключению backend API."
 )
@@ -64,7 +64,7 @@ SYSTEM_STATS = {
 tab1, tab2, tab3 = st.tabs([
     "👥 Пользователи",
     "📊 Статистика",
-    "⚡ Действия"
+    "🚀 Действия"
 ])
 
 with tab1:
@@ -84,14 +84,14 @@ with tab1:
         st.info("Пользователи не найдены")
     else:
         for user in filtered_users:
-            with st.expander(f"👤 {user['username']} (ID {user['id']})"):
+            with st.expander(f"?? {user['username']} (ID {user['id']})"):
                 col1, col2, col3, col4 = st.columns(4)
 
                 col1.write(f"Telegram ID: {user['telegram_id']}")
                 col2.write(f"Очки: {user['points']}")
                 col3.write(f"Уровень: {user['level']}")
 
-                status = "❌ Забанен" if user["is_banned"] else "✅ Активен"
+                status = "🚫 Забанен" if user["is_banned"] else "✅ Активен"
                 col4.write(status)
 
                 if user["is_banned"]:
@@ -113,7 +113,7 @@ with tab1:
 
                 if st.button("Применить", key=f"apply_{user['id']}"):
                     st.success(
-                        f"Очки изменены: {user['points']} → {user['points'] + delta}"
+                        f"Очки изменены: {user['points']} > {user['points'] + delta}"
                     )
 
 
@@ -151,7 +151,7 @@ with tab2:
     st.subheader("🏆 Топ пользователей")
 
     for i, user in enumerate(SYSTEM_STATS["top_users"], 1):
-        medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉"
+        medal = "🏅" if i == 1 else "??" if i == 2 else "??"
         st.write(f"{medal} **{user['username']}** — {user['points']} очков")
 
 

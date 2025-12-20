@@ -1,4 +1,4 @@
-import streamlit as st
+﻿import streamlit as st
 
 st.set_page_config(
     page_title="Достижения",
@@ -50,28 +50,28 @@ try:
         "champion": {
             "name": "Чемпион",
             "description": "Выиграть 5 вызовов",
-            "icon": "👑",
+            "icon": "🥇",
             "points": 300,
             "condition": "challenges_won >= 5"
         },
         "early_bird": {
             "name": "Ранняя пташка",
             "description": "5 тренировок до 7 утра",
-            "icon": "🌅",
+            "icon": "🐦",
             "points": 75,
             "condition": "morning_activities >= 5"
         },
         "weekend_warrior": {
             "name": "Воин выходного дня",
             "description": "10 тренировок в выходные",
-            "icon": "🎉",
+            "icon": "⚔️",
             "points": 80,
             "condition": "weekend_activities >= 10"
         },
         "record_breaker": {
             "name": "Рекордсмен",
             "description": "Побить личный рекорд 3 раза",
-            "icon": "⚡",
+            "icon": "💪",
             "points": 250,
             "condition": "records_broken >= 3"
         }
@@ -176,10 +176,10 @@ try:
     
     st.sidebar.divider()
     st.sidebar.subheader("Статистика")
-    st.sidebar.write(f"🎯 Всего активностей: {user_stats['activities_count']}")
-    st.sidebar.write(f"🔥 Серия дней: {user_stats['streak_days']}")
+    st.sidebar.write(f"⏱️ Всего активностей: {user_stats['activities_count']}")
+    st.sidebar.write(f"📅 Серия дней: {user_stats['streak_days']}")
     st.sidebar.write(f"👥 Друзей: {user_stats['friends_count']}")
-    st.sidebar.write(f"⚡ Побито рекордов: {user_stats['records_broken']}")
+    st.sidebar.write(f"🏆 Побито рекордов: {user_stats['records_broken']}")
     
 except ImportError as e:
     st.error(f"Ошибка импорта: {e}")
