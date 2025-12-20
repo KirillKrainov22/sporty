@@ -26,5 +26,27 @@ services:
       - "8000:8000"
     restart: always
 
+  bot:
+    build:
+      context: ./bot
+    container_name: sporty_bot
+    env_file:
+      - .env
+    depends_on:
+      - api
+    restart: always
+
+  web:
+    build:
+      context: ./sporty-web
+    container_name: sporty_web
+    env_file:
+      - .env
+    depends_on:
+      - api
+    ports:
+      - "8501:8501"
+    restart: always
+
 volumes:
   postgres_data:
