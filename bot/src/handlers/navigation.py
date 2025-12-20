@@ -97,7 +97,9 @@ async def navigate(callback: CallbackQuery, state: FSMContext):
 
     # История
     if target == "history":
-        return await update_screen(callback, "История пока не реализована.", main_menu_ui()[1])
+        from src.handlers.history import history_screen
+        text, kb = await history_screen()
+        return await update_screen(callback, text, kb)
 
     #  Профиль
     if target == "profile":
