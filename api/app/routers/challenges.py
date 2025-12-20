@@ -3,8 +3,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.db import get_session
-from app.models.challenge import Challenge
-from app.models.user import User
+from app.models import Challenge
+from app.models import User
 from app.schemas.challenge import ChallengeCreate, ChallengeRead
 
 router = APIRouter(prefix="/api/challenges", tags=["Challenges"])

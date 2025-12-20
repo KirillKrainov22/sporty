@@ -1,11 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from app.db import get_session
-from app.models.activity import Activity
+from app.models import Activity
 from app.schemas.activity import ActivityCreate, ActivityRead
 from app.core.kafka_producer import send_kafka_message
-from app.models.user import User
+from app.models import User
 
 router = APIRouter(
     prefix="/api/activities",

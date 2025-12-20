@@ -4,7 +4,7 @@ from sqlalchemy import select
 
 from app.db import get_session
 from app.models.friend import Friend
-from app.models.user import User
+from app.models import User
 from app.schemas.friend import FriendCreate, FriendRead
 
 router = APIRouter(prefix="/api/friends", tags=["Friends"])

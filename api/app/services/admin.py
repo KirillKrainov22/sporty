@@ -4,8 +4,8 @@ from datetime import datetime
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import User
-from app.models.activity import Activity
+from app.models import User
+from app.models import Activity
 
 
 # получить всех пользователей (админка)

@@ -3,6 +3,7 @@ from fastapi import Header, HTTPException, status
 from app.core.config import settings
 
 
+
 async def verify_admin_token(x_admin_token: str = Header(...)):
     """
     Простая токен-авторизация для админских эндпоинтов.

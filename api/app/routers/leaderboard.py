@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, desc, or_
 from app.db import get_session
-from app.models.user import User
+from app.models import User
 from app.models.friend import Friend
 from app.schemas.leaderboard import LeaderboardUser
 
