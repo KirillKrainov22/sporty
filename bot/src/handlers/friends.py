@@ -5,9 +5,9 @@ from aiogram.types import (
 )
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
+from src.services.api_client import api_client
 
 router = Router()
-
 
 
 #      MOCK DATA потом заменим на апишки
@@ -15,11 +15,9 @@ FAKE_FRIENDS = ["kirill", "maxim", "anton"]
 FAKE_REQUESTS = ["petya", "maria"]
 
 
-
 #       FSM — ввод username
 class AddFriendFSM(StatesGroup):
     entering_username = State()
-
 
 
 # УТИЛИТА ДЛЯ UXика
@@ -27,12 +25,12 @@ async def clear_friends_messages(state: FSMContext, event: CallbackQuery | Messa
     """Удаляет ВСЕ сообщения связанные с экраном друзья
     оставляя только меню, как в add_activity."""
     data = await state.get_data()
-    msgs = data.get("friends_msgs", []) ## список message_id котоыре потом удаляем
-    menu_id = data.get("menu_id")  # меню не трогаем
+    msgs = data.get("friends_msgs", [])
+    menu_id = data.get("menu_id")
 
-    bot = event.bot ## объект через который удалять сообщ можно
+    bot = event.bot
     chat_id = (
-        event.message.chat.id ## по-разному достаем
+        event.message.chat.id
         if isinstance(event, CallbackQuery)
         else event.chat.id
     )
@@ -45,9 +43,7 @@ async def clear_friends_messages(state: FSMContext, event: CallbackQuery | Messa
         except:
             pass
 
-    ## после удаления очищаем список (чтоб одно и то же повторно не удалять)
     await state.update_data(friends_msgs=[])
-
 
 
 async def remember(state: FSMContext, msg: Message):
@@ -58,7 +54,6 @@ async def remember(state: FSMContext, msg: Message):
     await state.update_data(friends_msgs=arr)
 
 
-
 #          ГЛАВНОЕ МЕНЮ ДРУЗЕЙ
 async def friends_screen():
     text = "👥 <b>Друзья</b>\n\nВыбери действие:"
@@ -67,7 +62,6 @@ async def friends_screen():
         [InlineKeyboardButton(text=f"📬 Заявки ({len(FAKE_REQUESTS)})", callback_data="fr:req")],
         [InlineKeyboardButton(text="➕ Добавить друга", callback_data="fr:add")],
         [InlineKeyboardButton(text="⬅ Меню", callback_data="fr:menu")],
-
     ])
     return text, kb
 
@@ -99,18 +93,17 @@ async def friend_requests_screen():
     text = "📬 <b>Входящие заявки:</b>\n\n"
     kb_rows = []
 
-    for user in FAKE_REQUESTS:
+    for username in FAKE_REQUESTS:
         kb_rows.append([
-            InlineKeyboardButton(text=f"@{user}", callback_data="none"),
-            InlineKeyboardButton(text="✔", callback_data=f"fr:accept:{user}"),
-            InlineKeyboardButton(text="✖", callback_data=f"fr:decline:{user}")
+            InlineKeyboardButton(text=f"@{username}", callback_data="none"),
+            InlineKeyboardButton(text="✔", callback_data=f"fr:accept:{username}"),
+            InlineKeyboardButton(text="✖", callback_data=f"fr:decline:{username}")
         ])
 
     kb_rows.append([InlineKeyboardButton(text="⬅ Назад", callback_data="fr:back")])
 
     kb = InlineKeyboardMarkup(inline_keyboard=kb_rows)
     return text, kb
-
 
 
 # ДОБАВИТЬ ДРУГА (ввод username)
@@ -122,16 +115,26 @@ async def add_friend_screen():
     return text, kb
 
 
-
 # ОБРАБОТЧИКИ CALLBACK
 @router.callback_query(F.data == "go:friends")
 async def open_friends(callback: CallbackQuery, state: FSMContext):
-    """Открыть главное меню друзей"""
+
+    data = await state.get_data()
+    user_id = data.get("user_id")
+
+    if not user_id:
+        await callback.answer(
+            "Сначала нажми /start 🙂",
+            show_alert=True
+        )
+        return
+
     await clear_friends_messages(state, callback)
 
-    # сохранить id меню
-    await state.update_data(menu_id=callback.message.message_id,
-                            friends_msgs=[callback.message.message_id])
+    await state.update_data(
+        menu_id=callback.message.message_id,
+        friends_msgs=[callback.message.message_id]
+    )
 
     text, kb = await friends_screen()
     msg = await callback.message.answer(text, reply_markup=kb)
@@ -141,7 +144,6 @@ async def open_friends(callback: CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "fr:back")
 async def back_from_friends(callback: CallbackQuery, state: FSMContext):
-    """Вернуться в главное меню друзей"""
     await clear_friends_messages(state, callback)
 
     text, kb = await friends_screen()
@@ -159,60 +161,50 @@ async def show_list(callback: CallbackQuery, state: FSMContext):
     await remember(state, msg)
     await callback.answer()
 
-# показать запросы в друзья
+
 @router.callback_query(F.data == "fr:req")
 async def show_requests(callback: CallbackQuery, state: FSMContext):
     await clear_friends_messages(state, callback)
 
     text, kb = await friend_requests_screen()
-    msg = await callback.message.answer(text, reply_markup=kb) ## отправляеи сообз пользователю
+    msg = await callback.message.answer(text, reply_markup=kb)
     await remember(state, msg)
     await callback.answer()
 
 
-# принять заявку
 @router.callback_query(lambda c: c.data.startswith("fr:accept"))
 async def accept_request(callback: CallbackQuery, state: FSMContext):
-    ## FSM context потому что дальше вызываем  show_requests, а там исп clear_friends_messages
-    user = callback.data.split(":")[2]
-    if user in FAKE_REQUESTS:
-        FAKE_REQUESTS.remove(user)
-        FAKE_FRIENDS.append(user)
+    friend_id = callback.data.split(":")[2]
+
+    # ⬇️ ЗАГЛУШКА
+    # POST /api/friends/accept (user_id, friend_id)
 
     await show_requests(callback, state)
-    # просто заново вызываем чтобы показать все запросы , так как там уже заявка пропадет
 
 
-
-# отклонить заявку
 @router.callback_query(lambda c: c.data.startswith("fr:decline"))
 async def decline_request(callback: CallbackQuery, state: FSMContext):
-    user = callback.data.split(":")[2]
-    if user in FAKE_REQUESTS:
-        FAKE_REQUESTS.remove(user)
+    friend_id = callback.data.split(":")[2]
+
+    # ⬇️ ЗАГЛУШКА
+    # POST /api/friends/decline (user_id, friend_id)
 
     await show_requests(callback, state)
 
 
-# добавить друга
-## Это хендлер на нажатие кнопки Добавить друга
 @router.callback_query(F.data == "fr:add")
 async def add_friend(callback: CallbackQuery, state: FSMContext):
     await clear_friends_messages(state, callback)
-    ## включаем FSM состояние (и след сообщение пользователя будет обработано хэндлером)
     await state.set_state(AddFriendFSM.entering_username)
 
-    text, kb = await add_friend_screen() # введитье username и кнопка отмена
-    msg = await callback.message.answer(text, reply_markup=kb) # отправл польщователю
-    await remember(state, msg) # запоминаем для очистики дальше
-    await callback.answer() # чтобы не висел loading
+    text, kb = await add_friend_screen()
+    msg = await callback.message.answer(text, reply_markup=kb)
+    await remember(state, msg)
+    await callback.answer()
 
-# обработка текстового ввода в FSM
-# вызвается только если FSM включен
+
 @router.message(AddFriendFSM.entering_username)
 async def input_friend(message: Message, state: FSMContext):
-
-    # неверный ввод — удаляем сообщение и продолжаем ждать
     username = message.text.strip()
     await remember(state, message)
 
@@ -220,8 +212,9 @@ async def input_friend(message: Message, state: FSMContext):
         await message.delete()
         return
 
-    # имитация добавления
-    FAKE_REQUESTS.append(username[1:])
+    # ⬇️ ЗАГЛУШКА
+    # 1. resolve username -> friend_id
+    # 2. POST /api/friends (user_id, friend_id)
 
     msg = await message.answer(
         f"Заявка отправлена пользователю {username}!",
@@ -230,25 +223,22 @@ async def input_friend(message: Message, state: FSMContext):
         )
     )
     await remember(state, msg)
-
     await state.clear()
+
 
 @router.callback_query(F.data == "fr:cancel")
 async def cancel_add_friend(callback: CallbackQuery, state: FSMContext):
     await clear_friends_messages(state, callback)
     await state.clear()
 
-    # вернуться в главное меню друзей
     text, kb = await friends_screen()
     msg = await callback.message.answer(text, reply_markup=kb)
     await remember(state, msg)
     await callback.answer()
 
+
 @router.callback_query(F.data == "fr:menu")
 async def exit_to_menu(callback: CallbackQuery, state: FSMContext):
-    # Удаляем все сообщения friends FSM
     await clear_friends_messages(state, callback)
     await state.clear()
-
-    # НЕ отправляем меню заново — оно уже есть в чате
     await callback.answer()
