@@ -1,10 +1,9 @@
 from aiogram import Router, types
 from aiogram.filters import Command
-from src.handlers.navigation import main_menu_ui
 from aiogram.fsm.context import FSMContext
-from src.services import api_client
-from src.services.api_client import ApiError
-import requests
+
+from src.handlers.navigation import main_menu_ui
+from src.services.api_client import api_client
 
 router = Router()
 
@@ -12,14 +11,22 @@ router = Router()
 @router.message(Command("start"))
 async def start_handler(message: types.Message, state: FSMContext):
     telegram_id = message.from_user.id
-    username = message.from_user.username  # может быть None
+    username = message.from_user.username
 
-    try:
-        user = api_client.ensure_user(telegram_id=telegram_id, username=username)
-        await state.update_data(user_id=user["id"])
-    except (requests.exceptions.RequestException, ApiError):
-        await message.answer("⚠️ Сервис временно недоступен. Попробуй позже.")
-        return
+    #регистрация / получение пользователя в backend
+    user = await api_client.post(
+        "/api/users/",
+        json={
+            "telegram_id": telegram_id,
+            "username": username
+        }
+    )
+
+    #сохраняем backend user_id
+    await state.update_data(
+        user_id=user["id"],
+        telegram_id=telegram_id
+    )
 
     await message.answer(
         "👋 Добро пожаловать, это Sporty Bot! Используй меню ниже:",

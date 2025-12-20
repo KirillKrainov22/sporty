@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     ADMIN_TOKEN: str
 
     # Kafka
-    kafka_bootstrap_servers: str
+    #kafka_bootstrap_servers: str
 
     model_config = {
         "env_file": ".env",

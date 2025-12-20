@@ -20,8 +20,6 @@ async def main():
     bot = Bot(
         token=BOT_TOKEN,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML)
-        #задаёт дефолтные свойства чтобы tg понимал HTML-теги в текстах).
-
     )
     dp = Dispatcher()
 

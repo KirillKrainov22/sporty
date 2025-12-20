@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.core.kafka_producer import init_kafka_producer, close_kafka_producer
+#from app.core.kafka_producer import init_kafka_producer, close_kafka_producer
 from app.routers import (
     users,
     activities,
