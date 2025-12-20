@@ -6,3 +6,4 @@ pydantic
 pydantic-settings
 greenlet
 alembic
+aiokafka==0.12.0
