@@ -15,4 +15,3 @@ async def verify_admin_token(x_admin_token: str | None = Header(None)):
             detail="Invalid admin token",
         )
     return True
-#для коммита

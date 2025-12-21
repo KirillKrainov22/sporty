@@ -8,3 +8,4 @@ python-dotenv
 aiokafka
 alembic
 psycopg2-binary
+

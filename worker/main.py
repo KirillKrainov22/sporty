@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import os
+
 from aiokafka import AIOKafkaConsumer
 from aiokafka.errors import KafkaConnectionError
 

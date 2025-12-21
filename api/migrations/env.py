@@ -15,11 +15,15 @@ if PROJECT_ROOT not in sys.path:
 from app.core.config import settings
 from app.models import Base  # noqa
 
+
 def make_sync_database_url(async_url: str) -> str:
     """Преобразуем asyncpg-URL к psycopg2 для Alembic."""
     if async_url.startswith("postgresql+asyncpg"):
         return async_url.replace("+asyncpg", "+psycopg2", 1)
     return async_url
+
+
+
 
 # ---- НАСТРОЙКИ ПОДКЛЮЧЕНИЯ К БД ДЛЯ ALEMBIC ----
 SYNC_DATABASE_URL = make_sync_database_url(settings.DATABASE_URL)

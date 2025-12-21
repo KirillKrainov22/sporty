@@ -1,4 +1,4 @@
-from aiogram import Router
+from aiogram import Router, types
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
@@ -44,7 +44,7 @@ def main_menu_ui():
 
 # /menu
 @router.message(Command("menu"))
-async def show_menu(message):
+async def show_menu(message: types.Message):
     text, kb = main_menu_ui()
     await message.answer(text, reply_markup=kb)
 
@@ -68,7 +68,7 @@ async def navigate(callback: CallbackQuery, state: FSMContext):
     # Статистика
     if target == "my_stats":
         from src.handlers.my_stats import my_stats_screen
-        text, kb = await my_stats_screen()
+        text, kb = await my_stats_screen(state)
         return await update_screen(callback, text, kb)
 
     #  Друзья
@@ -80,7 +80,7 @@ async def navigate(callback: CallbackQuery, state: FSMContext):
     # Достижения
     if target == "achievements":
         from src.handlers.achievements import achievements_screen
-        text, kb = await achievements_screen()
+        text, kb = await achievements_screen(state)
         return await update_screen(callback, text, kb)
 
     #  Вызовы
@@ -92,7 +92,7 @@ async def navigate(callback: CallbackQuery, state: FSMContext):
     #  Лидербор
     if target == "leaderboard":
         from src.handlers.leaderboard import leaderboard_screen
-        text, kb = await leaderboard_screen()
+        text, kb = await leaderboard_screen(state)
         return await update_screen(callback, text, kb)
 
     # История
