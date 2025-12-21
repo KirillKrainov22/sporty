@@ -22,7 +22,9 @@ async def start_handler(message: types.Message, state: FSMContext):
         )
         return
 
-    await state.update_data(user_id=user["id"], telegram_id=telegram_id)
+    await state.update_data(
+        user_id=user["id"], telegram_id=telegram_id, username=username
+    )
 
     await message.answer(
         "👋 Добро пожаловать, это Sporty Bot! Используй меню ниже:",

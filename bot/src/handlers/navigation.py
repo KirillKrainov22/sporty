@@ -103,6 +103,9 @@ async def navigate(callback: CallbackQuery, state: FSMContext):
 
     #  Профиль
     if target == "profile":
-        return await update_screen(callback, "Профиль пока не реализован.", main_menu_ui()[1])
+        from src.handlers.profile import profile_screen
+
+        text, kb = await profile_screen(state)
+        return await update_screen(callback, text, kb)
 
     await callback.answer()
