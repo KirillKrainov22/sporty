@@ -76,6 +76,7 @@ with users_tab:
                     result = api.ban_user(user_id=user["id"], is_banned=new_status, admin_token=admin_token)
                     if result:
                         st.success("Статус обновлён")
+                        load_admin_data.clear()
                     else:
                         st.error("Не удалось изменить статус")
 
@@ -88,6 +89,7 @@ with users_tab:
                     )
                     if res:
                         st.success("Очки обновлены")
+                        load_admin_data.clear()
                     else:
                         st.error("Не удалось обновить очки")
 

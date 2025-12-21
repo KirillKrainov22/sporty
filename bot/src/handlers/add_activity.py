@@ -40,6 +40,36 @@ async def remember_message(state: FSMContext, message: Message):
     msgs.append(message.message_id)
     await state.update_data(msgs=msgs)
 
+async def ensure_user_in_state(state: FSMContext, event: CallbackQuery | Message):
+    """Guarantee user data is available by re-fetching it from the API if FSM memory was lost."""
+
+    data = await state.get_data()
+    if data.get("user_id"):
+        return data
+
+    telegram_id = None
+    username = None
+    if isinstance(event, CallbackQuery):
+        telegram_id = event.from_user.id if event.from_user else None
+        username = event.from_user.username if event.from_user else None
+    elif isinstance(event, Message):
+        telegram_id = event.from_user.id if event.from_user else None
+        username = event.from_user.username if event.from_user else None
+
+    if not telegram_id:
+        return None
+
+    try:
+        user = await api_client.get_user_by_telegram_id(telegram_id)
+    except httpx.HTTPStatusError:
+        return None
+
+    await state.update_data(
+        user_id=user.get("id"),
+        telegram_id=telegram_id,
+        username=username or user.get("username"),
+    )
+    return await state.get_data()
 
 def activity_type_keyboard():
     return InlineKeyboardMarkup(
@@ -59,8 +89,22 @@ def activity_type_keyboard():
 
 @router.message(F.text == "/add_activity")
 async def add_activity_command(message: Message, state: FSMContext):
+    existing_data = await ensure_user_in_state(state, message)
+    if not existing_data or not existing_data.get("user_id"):
+        await message.answer("Сначала нажми /start, чтобы зарегистрироваться.")
+        return
+
+    user_id = existing_data.get("user_id")
+    telegram_id = existing_data.get("telegram_id")
+    username = existing_data.get("username")
     await state.clear()
-    await state.update_data(menu_id=message.message_id, msgs=[message.message_id])
+    await state.update_data(
+        user_id=user_id,
+        telegram_id=telegram_id,
+        username=username,
+        menu_id=message.message_id,
+        msgs=[message.message_id],
+    )
     await state.set_state(AddActivity.choosing_type)
 
     msg = await message.answer("🏃 <b>Выбери тип активности:</b>", reply_markup=activity_type_keyboard())
@@ -117,8 +161,8 @@ async def input_duration(message: Message, state: FSMContext):
     await remember_message(state, message)
 
     duration = int(txt)
-    data = await state.get_data()
-    user_id = data.get("user_id")
+    data = await ensure_user_in_state(state, message)
+    user_id = data.get("user_id") if data else None
     if not user_id:
         await message.answer("Сначала нажми /start, чтобы зарегистрироваться.")
         await state.clear()
