@@ -23,9 +23,10 @@ def make_sync_database_url(async_url: str) -> str:
     return async_url
 
 
+
+
 # ---- НАСТРОЙКИ ПОДКЛЮЧЕНИЯ К БД ДЛЯ ALEMBIC ----
 SYNC_DATABASE_URL = make_sync_database_url(settings.DATABASE_URL)
-
 # Alembic Config
 config = context.config
 
