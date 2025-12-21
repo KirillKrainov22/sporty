@@ -1,10 +1,11 @@
 from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 import httpx
 
 from src.services.api_client import api_client
+from src.utils.user_state import ensure_user_in_state
 
 router = Router()
 
@@ -14,14 +15,16 @@ def _format_username(username: str | None) -> str:
         return "—"
     return f"@{username}"
 
-
-async def _load_user(state: FSMContext) -> tuple[int | None, str | None]:
-    data = await state.get_data()
+async def _load_user(state: FSMContext, event: types.Message | CallbackQuery | None = None) -> tuple[
+    int | None, str | None]:
+    data = await ensure_user_in_state(state, event)
+    if not data:
+        return None, None
     return data.get("user_id"), data.get("telegram_id")
 
+async def profile_screen(state: FSMContext, event: types.Message | CallbackQuery | None = None):
+    user_id, telegram_id = await _load_user(state, event)
 
-async def profile_screen(state: FSMContext):
-    user_id, telegram_id = await _load_user(state)
 
     if not telegram_id:
         return "Сначала нажми /start", InlineKeyboardMarkup(
@@ -53,5 +56,5 @@ async def profile_screen(state: FSMContext):
 
 @router.message(Command("profile"))
 async def profile_handler(message: types.Message, state: FSMContext):
-    text, kb = await profile_screen(state)
+    text, kb = await profile_screen(state, message)
     await message.answer(text, reply_markup=kb)

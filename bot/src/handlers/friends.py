@@ -5,6 +5,7 @@ from aiogram.fsm.state import StatesGroup, State
 import httpx
 
 from src.services.api_client import api_client
+from src.utils.user_state import ensure_user_in_state, clear_state_preserve_user
 
 router = Router()
 
@@ -85,8 +86,8 @@ async def add_friend_screen():
 
 @router.callback_query(F.data == "go:friends")
 async def open_friends(callback: CallbackQuery, state: FSMContext):
-    data = await state.get_data()
-    user_id = data.get("user_id")
+    data = await ensure_user_in_state(state, callback)
+    user_id = data.get("user_id") if data else None
 
     if not user_id:
         await callback.answer("Сначала нажми /start 🙂", show_alert=True)
@@ -140,9 +141,20 @@ async def input_friend_id(message: Message, state: FSMContext):
         return
 
     friend_id = int(text)
-    data = await state.get_data()
-    user_id = data.get("user_id")
+    data = await ensure_user_in_state(state, message)
+    user_id = data.get("user_id") if data else None
     await remember(state, message)
+
+    if not user_id:
+        msg = await message.answer(
+            "Сначала нажми /start, чтобы отправлять заявки в друзья.",
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[[InlineKeyboardButton(text="⬅ Назад", callback_data="fr:back")]]
+            ),
+        )
+        await remember(state, msg)
+        await clear_state_preserve_user(state)
+        return
 
     try:
         await api_client.add_friend(user_id=user_id, friend_id=friend_id)
@@ -162,13 +174,13 @@ async def input_friend_id(message: Message, state: FSMContext):
         )
         await remember(state, msg)
     finally:
-        await state.clear()
+        await clear_state_preserve_user(state)
 
 
 @router.callback_query(F.data == "fr:cancel")
 async def cancel_add_friend(callback: CallbackQuery, state: FSMContext):
     await clear_friends_messages(state, callback)
-    await state.clear()
+    await clear_state_preserve_user(state)
     text, kb = await friends_screen()
     msg = await callback.message.answer(text, reply_markup=kb)
     await remember(state, msg)
@@ -178,5 +190,5 @@ async def cancel_add_friend(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "fr:menu")
 async def exit_to_menu(callback: CallbackQuery, state: FSMContext):
     await clear_friends_messages(state, callback)
-    await state.clear()
+    await clear_state_preserve_user(state)
     await callback.answer()
