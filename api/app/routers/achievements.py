@@ -5,6 +5,7 @@ from sqlalchemy import select
 from app.db import get_session
 from app.models.user import User
 from app.models.achievement import Achievement
+from app.schemas.achievement import AchievementStatus
 
 router = APIRouter(
     prefix="/api/users",
@@ -12,7 +13,7 @@ router = APIRouter(
 )
 
 
-@router.get("/{user_id}/achievements")
+@router.get("/{user_id}/achievements", response_model=list[AchievementStatus])
 async def get_user_achievements(
     user_id: int,
     db: AsyncSession = Depends(get_session)

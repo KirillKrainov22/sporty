@@ -1,19 +1,30 @@
-from logging.config import fileConfig
 import os
 import sys
+from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import create_engine, pool
 
+
 # добавляем в sys.path папку api, чтобы импортировать app.*
 CURRENT_DIR = os.path.dirname(__file__)
 PROJECT_ROOT = os.path.abspath(os.path.join(CURRENT_DIR, ".."))
-sys.path.append(PROJECT_ROOT)
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
 
+from app.core.config import settings
 from app.models import Base  # noqa
 
+
+def make_sync_database_url(async_url: str) -> str:
+    """Преобразуем asyncpg-URL к psycopg2 для Alembic."""
+    if async_url.startswith("postgresql+asyncpg"):
+        return async_url.replace("+asyncpg", "+psycopg2", 1)
+    return async_url
+
+
 # ---- НАСТРОЙКИ ПОДКЛЮЧЕНИЯ К БД ДЛЯ ALEMBIC ----
-SYNC_DATABASE_URL = "postgresql+psycopg2://postgres:postgres@localhost:5432/sporty"
+SYNC_DATABASE_URL = make_sync_database_url(settings.DATABASE_URL)
 
 # Alembic Config
 config = context.config

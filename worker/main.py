@@ -1,6 +1,8 @@
 import asyncio
 import json
 import logging
+import os
+
 from aiokafka import AIOKafkaConsumer
 from aiokafka.errors import KafkaConnectionError
 
@@ -32,7 +34,7 @@ def safe_json_loads(raw: bytes | None):
 async def main():
     consumer = AIOKafkaConsumer(
         "activities_created",
-        bootstrap_servers="kafka:9092",
+        bootstrap_servers=os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092"),
         group_id="sporty-workers",
         auto_offset_reset="earliest",
         enable_auto_commit=True,
