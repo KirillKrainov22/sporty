@@ -1,10 +1,11 @@
 from aiogram import Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
 import httpx
 
 from src.services.api_client import api_client
+from src.utils.user_state import ensure_user_in_state
 
 router = Router()
 
@@ -21,9 +22,9 @@ def _format_stats(stats: dict) -> str:
     )
 
 
-async def _get_user_stats(state: FSMContext) -> dict | None:
-    data = await state.get_data()
-    user_id = data.get("user_id")
+async def _get_user_stats(state: FSMContext, event: types.Message | CallbackQuery | None = None) -> dict | None:
+    data = await ensure_user_in_state(state, event)
+    user_id = data.get("user_id") if data else None
     if not user_id:
         return None
     return await api_client.get_user_stats(user_id)
@@ -32,7 +33,7 @@ async def _get_user_stats(state: FSMContext) -> dict | None:
 @router.message(Command("my_stats"))
 async def my_stats(message: types.Message, state: FSMContext):
     try:
-        stats = await _get_user_stats(state)
+        stats = await _get_user_stats(state, message)
     except httpx.HTTPStatusError:
         await message.answer("Не удалось получить статистику пользователя")
         return
@@ -44,9 +45,9 @@ async def my_stats(message: types.Message, state: FSMContext):
     await message.answer(_format_stats(stats))
 
 
-async def my_stats_screen(state: FSMContext):
+async def my_stats_screen(state: FSMContext, event: types.Message | CallbackQuery | None = None):
     try:
-        stats = await _get_user_stats(state)
+        stats = await _get_user_stats(state, event)
     except httpx.HTTPStatusError:
         return "Не удалось получить статистику", InlineKeyboardMarkup(
             inline_keyboard=[[InlineKeyboardButton(text="⬅ Назад", callback_data="go:menu")]]

@@ -5,6 +5,7 @@ from aiogram.fsm.state import StatesGroup, State
 import httpx
 
 from src.services.api_client import api_client
+from src.utils.user_state import ensure_user_in_state, clear_state_preserve_user
 
 router = Router()
 
@@ -40,36 +41,7 @@ async def remember_message(state: FSMContext, message: Message):
     msgs.append(message.message_id)
     await state.update_data(msgs=msgs)
 
-async def ensure_user_in_state(state: FSMContext, event: CallbackQuery | Message):
-    """Guarantee user data is available by re-fetching it from the API if FSM memory was lost."""
 
-    data = await state.get_data()
-    if data.get("user_id"):
-        return data
-
-    telegram_id = None
-    username = None
-    if isinstance(event, CallbackQuery):
-        telegram_id = event.from_user.id if event.from_user else None
-        username = event.from_user.username if event.from_user else None
-    elif isinstance(event, Message):
-        telegram_id = event.from_user.id if event.from_user else None
-        username = event.from_user.username if event.from_user else None
-
-    if not telegram_id:
-        return None
-
-    try:
-        user = await api_client.get_user_by_telegram_id(telegram_id)
-    except httpx.HTTPStatusError:
-        return None
-
-    await state.update_data(
-        user_id=user.get("id"),
-        telegram_id=telegram_id,
-        username=username or user.get("username"),
-    )
-    return await state.get_data()
 
 def activity_type_keyboard():
     return InlineKeyboardMarkup(
@@ -97,7 +69,7 @@ async def add_activity_command(message: Message, state: FSMContext):
     user_id = existing_data.get("user_id")
     telegram_id = existing_data.get("telegram_id")
     username = existing_data.get("username")
-    await state.clear()
+    await clear_state_preserve_user(state)
     await state.update_data(
         user_id=user_id,
         telegram_id=telegram_id,
@@ -165,7 +137,7 @@ async def input_duration(message: Message, state: FSMContext):
     user_id = data.get("user_id") if data else None
     if not user_id:
         await message.answer("Сначала нажми /start, чтобы зарегистрироваться.")
-        await state.clear()
+        await clear_state_preserve_user(state)
         return
 
     try:
@@ -177,7 +149,7 @@ async def input_duration(message: Message, state: FSMContext):
         )
     except httpx.HTTPStatusError:
         await message.answer("Не удалось сохранить активность. Попробуйте ещё раз.")
-        await state.clear()
+        await clear_state_preserve_user(state)
         return
 
     points = activity.get("points", 0) if isinstance(activity, dict) else 0
@@ -207,10 +179,10 @@ async def again(callback: CallbackQuery, state: FSMContext):
 @router.callback_query(F.data == "act:cancel")
 async def cancel(callback: CallbackQuery, state: FSMContext):
     await clear_fsm_messages(state, callback)
-    await state.clear()
+    await clear_state_preserve_user(state)
 
 
 @router.callback_query(F.data == "act:menu")
 async def back_to_menu(callback: CallbackQuery, state: FSMContext):
     await clear_fsm_messages(state, callback)
-    await state.clear()
+    await clear_state_preserve_user(state)
