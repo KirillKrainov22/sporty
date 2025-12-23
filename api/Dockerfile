@@ -15,5 +15,5 @@ COPY . .
 # 5. Открываем порт FastAPI
 EXPOSE 8000
 
-# 6. Запуск FastAPI
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+CMD ["/bin/sh", "-c", "alembic -c alembic.ini upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]

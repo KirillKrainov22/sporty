@@ -1,7 +1,8 @@
-from aiogram import Router
+from aiogram import Router, types
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
+from src.utils.user_state import ensure_user_in_state
 
 router = Router()
 
@@ -44,7 +45,7 @@ def main_menu_ui():
 
 # /menu
 @router.message(Command("menu"))
-async def show_menu(message):
+async def show_menu(message: types.Message):
     text, kb = main_menu_ui()
     await message.answer(text, reply_markup=kb)
 
@@ -53,7 +54,10 @@ async def show_menu(message):
 @router.callback_query(lambda c: c.data.startswith("go:"))
 async def navigate(callback: CallbackQuery, state: FSMContext):
     target = callback.data.split(":")[1]
-
+    data = await ensure_user_in_state(state, callback)
+    if not data:
+        await callback.answer("Сначала нажми /start", show_alert=True)
+        return
     # Главное мен
     if target == "menu":
         text, kb = main_menu_ui()
@@ -68,7 +72,7 @@ async def navigate(callback: CallbackQuery, state: FSMContext):
     # Статистика
     if target == "my_stats":
         from src.handlers.my_stats import my_stats_screen
-        text, kb = await my_stats_screen()
+        text, kb = await my_stats_screen(state, callback)
         return await update_screen(callback, text, kb)
 
     #  Друзья
@@ -80,7 +84,7 @@ async def navigate(callback: CallbackQuery, state: FSMContext):
     # Достижения
     if target == "achievements":
         from src.handlers.achievements import achievements_screen
-        text, kb = await achievements_screen()
+        text, kb = await achievements_screen(state)
         return await update_screen(callback, text, kb)
 
     #  Вызовы
@@ -92,7 +96,7 @@ async def navigate(callback: CallbackQuery, state: FSMContext):
     #  Лидербор
     if target == "leaderboard":
         from src.handlers.leaderboard import leaderboard_screen
-        text, kb = await leaderboard_screen()
+        text, kb = await leaderboard_screen(state)
         return await update_screen(callback, text, kb)
 
     # История
@@ -103,6 +107,9 @@ async def navigate(callback: CallbackQuery, state: FSMContext):
 
     #  Профиль
     if target == "profile":
-        return await update_screen(callback, "Профиль пока не реализован.", main_menu_ui()[1])
+        from src.handlers.profile import profile_screen
+
+        text, kb = await profile_screen(state, callback)
+        return await update_screen(callback, text, kb)
 
     await callback.answer()

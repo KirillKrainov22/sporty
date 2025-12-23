@@ -3,7 +3,8 @@ from fastapi import Header, HTTPException, status
 from app.core.config import settings
 
 
-async def verify_admin_token(x_admin_token: str = Header(...)):
+
+async def verify_admin_token(x_admin_token: str | None = Header(None)):
     """
     Простая токен-авторизация для админских эндпоинтов.
     Ожидаем заголовок: X-Admin-Token: <token>
@@ -14,4 +15,3 @@ async def verify_admin_token(x_admin_token: str = Header(...)):
             detail="Invalid admin token",
         )
     return True
-#для коммита

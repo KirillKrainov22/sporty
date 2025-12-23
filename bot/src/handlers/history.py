@@ -1,55 +1,10 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
-
-#        api заглушка
-async def get_history_data(user_id: int):
-    """
-    cейчас возвращаем заглушку.
-    потом здесь должен быть запрос к API
-
-    пример:
-    async with aiohttp.ClientSession() as session:
-        async with session.get(
-            f"http://api:8000/history/{user_id}"
-        ) as resp:
-            return await resp.json()
-    """
-    return [
-        {
-            "date": "12.12.2025",
-            "type": "Бег",
-            "distance": 5,
-            "time": 30,
-            "points": 120,
-        },
-        {
-            "date": "11.12.2025",
-            "type": "Ходьба",
-            "distance": 3,
-            "time": 40,
-            "points": 80,
-        },
-    ]
-
-
-
 async def history_screen(user_id: int | None = None):
-    history = await get_history_data(user_id)
-
-    if not history:
-        text = "📜 <b>История тренировок</b>\n\nТренировок пока нет."
-    else:
-        lines = ["📜 <b>История тренировок</b>\n"]
-        for h in history:
-            lines.append(
-                f"• {h['date']} — {h['type']}\n"
-                f"  {h['distance']} км · {h['time']} мин · {h['points']} очков\n"
-            )
-        text = "\n".join(lines)
-
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="⬅ Назад", callback_data="go:menu")]
-    ])
-
+    text = (
+        "📜 <b>История тренировок</b>\n\n"
+        "История недоступна: текущий API не предоставляет эндпоинт для списка активностей."
+    )
+    kb = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="⬅ Назад", callback_data="go:menu")]])
     return text, kb

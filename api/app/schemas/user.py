@@ -51,9 +51,9 @@ class UserStats(BaseModel):
 
     global_rank: int
 
-    daily_progress: List[dict]
-    weekly_progress: List[dict]
-    activity_type_stats: List[dict]
+    daily_progress: List[DailyProgress]
+    weekly_progress: List[WeeklyProgress]
+    activity_type_stats: List[ActivityTypeStats]
 
     class Config:
         from_attributes = True

@@ -1,83 +1,67 @@
 import streamlit as st
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
-
-USE_API = False
+from datetime import datetime
+from modules.api_client import api
+from modules.config import TEST_USER_ID
 
 st.set_page_config(
     page_title="Детальная статистика",
     page_icon="📊",
-    layout="wide"
+    layout="wide",
 )
 
 st.title("📊 Детальная статистика пользователя")
 
-
-def get_mock_user_stats(days=30):
-    data = []
-    for i in range(days):
-        date = (datetime.now() - timedelta(days=days - i)).strftime("%Y-%m-%d")
-        points = 80 + (i % 7) * 15 + i * 3
-        data.append({"date": date, "points": points})
-    return data
-
-
-user_id = st.sidebar.number_input("User ID", min_value=1, value=1, step=1)
+user_id = st.sidebar.number_input("User ID", min_value=1, value=TEST_USER_ID, step=1)
 
 with st.spinner("Загружаем данные..."):
-    if USE_API:
-        try:
-            from modules.api_client import api
-            stats = api.get_user_stats(user_id)
-            if not stats:
-                raise ValueError("API вернул пустые данные")
-            progress_data = stats["daily_progress"]
-        except Exception as e:
-            st.error("Ошибка при загрузке данных из API")
-            st.stop()
-    else:
-        progress_data = get_mock_user_stats(30)
+    stats = api.get_user_stats(user_id)
 
+if not stats:
+    st.error("Не удалось получить статистику пользователя из API")
+    st.stop()
 
 st.subheader("📈 Прогресс по дням")
 
-dates = [d["date"] for d in progress_data]
-points = [d["points"] for d in progress_data]
+progress_data = stats.get("daily_progress", [])
+dates = [d.get("date") for d in progress_data]
+points = [d.get("points", 0) for d in progress_data]
 
-fig = go.Figure()
-fig.add_trace(go.Scatter(
-    x=dates,
-    y=points,
-    mode="lines+markers",
-    name="Очки"
-))
+if dates and points:
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=dates,
+            y=points,
+            mode="lines+markers",
+            name="Очки",
+        )
+    )
+    fig.update_layout(xaxis_title="Дата", yaxis_title="Очки", height=400)
+    st.plotly_chart(fig, use_container_width=True)
+else:
+    st.info("Нет данных о ежедневном прогрессе")
 
-fig.update_layout(
-    xaxis_title="Дата",
-    yaxis_title="Очки",
-    height=400
-)
-
-st.plotly_chart(fig, use_container_width=True)
-
-
-st.subheader("📌 Ключевые показатели")
-
-col1, col2, col3 = st.columns(3)
-
-col1.metric("Всего очков", sum(points))
-col2.metric("Среднее в день", sum(points) // len(points))
-col3.metric("Максимум за день", max(points))
-
+st.subheader("📊 Ключевые показатели")
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Всего очков", stats.get("points", 0))
+col2.metric("Уровень", stats.get("level", 0))
+col3.metric("Всего активностей", stats.get("total_activities", 0))
+col4.metric("Глобальный ранг", stats.get("global_rank", "—"))
 
 st.divider()
 
-if USE_API:
-    st.success("Данные получены из backend API")
+st.subheader("Статистика по активностям")
+activity_stats = stats.get("activity_type_stats", [])
+if activity_stats:
+    labels = [item.get("type", "unknown") for item in activity_stats]
+    values = [item.get("count", 0) for item in activity_stats]
+    pie = go.Figure(data=[go.Pie(labels=labels, values=values, hole=0.4)])
+    pie.update_layout(height=360)
+    st.plotly_chart(pie, use_container_width=True)
 else:
-    st.info(
-        "🔧 Локальный режим\n\n"
-        "Используются тестовые данные. "
-    )
+    st.info("Нет статистики по типам активностей")
 
+st.divider()
+st.success("Данные получены из backend API")
 st.caption(f"Обновлено: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")

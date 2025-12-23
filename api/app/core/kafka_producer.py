@@ -1,6 +1,5 @@
 from aiokafka import AIOKafkaProducer
 from app.core.config import settings
-
 producer: AIOKafkaProducer | None = None
 
 async def init_kafka_producer():
