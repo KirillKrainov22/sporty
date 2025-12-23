@@ -45,7 +45,9 @@ services:
 
 
   worker:
-    build: ./worker
+    build:
+      context: .
+      dockerfile: worker/Dockerfile
     container_name: sporty_worker
     env_file:
       - .env

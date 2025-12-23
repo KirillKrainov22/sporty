@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc, or_
+from sqlalchemy import select, desc, or_, func
 from app.db import get_session
-from app.models import User
+from app.models import User, Activity
 from app.models.friend import Friend
 from app.schemas.leaderboard import LeaderboardUser
 
@@ -17,9 +17,15 @@ router = APIRouter(
 @router.get("/", response_model=list[LeaderboardUser])
 async def get_global_leaderboard(db: AsyncSession = Depends(get_session)):
     query = (
-        select(User.id, User.username, User.points)
+        select(
+            User.id,
+            User.username,
+            func.coalesce(func.sum(Activity.points), 0).label("points"),
+        )
+        .join(Activity, Activity.user_id == User.id, isouter=True)
         .where(User.is_banned == False)
-        .order_by(desc(User.points))
+        .group_by(User.id, User.username)
+        .order_by(desc("points"))
     )
     result = await db.execute(query)
     rows = result.all()
@@ -65,12 +71,18 @@ async def get_friends_leaderboard(user_id: int, db: AsyncSession = Depends(get_s
 
     # запросим пользователей
     users_query = (
-        select(User.id, User.username, User.points)
+        select(
+            User.id,
+            User.username,
+            func.coalesce(func.sum(Activity.points), 0).label("points"),
+        )
+        .join(Activity, Activity.user_id == User.id, isouter=True)
         .where(
             User.id.in_(friend_ids),
             User.is_banned == False
         )
-        .order_by(desc(User.points))
+        .group_by(User.id, User.username)
+        .order_by(desc("points"))
 
     )
 

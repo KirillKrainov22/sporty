@@ -6,7 +6,6 @@ import os
 from aiokafka import AIOKafkaConsumer
 from aiokafka.errors import KafkaConnectionError
 
-
 # -------------------- logging --------------------
 logging.basicConfig(
     level=logging.INFO,
@@ -17,7 +16,6 @@ logger = logging.getLogger("worker")
 
 # -------------------- utils --------------------
 def safe_json_loads(raw: bytes | None):
-    
     if raw is None:
         return None
 
