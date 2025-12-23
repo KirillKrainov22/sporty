@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.db import get_session
-from app.models import Activity
-from app.schemas.activity import ActivityCreate, ActivityRead
 from app.core.kafka_producer import send_kafka_message
-from app.models import User
+from app.db import get_session
+from app.models import Activity, User
+from app.schemas.activity import ActivityCreate, ActivityRead
+from app.services.points import calculate_level, calculate_points
 
 router = APIRouter(
     prefix="/api/activities",
@@ -29,9 +29,17 @@ async def create_activity(
         type=data.type,
         distance=data.distance,
         duration=data.duration,
-        points=0  # временно, пока нет воркера
     )
     db.add(activity)
+    await db.flush()
+    await db.refresh(activity)
+
+    points = await calculate_points(db, activity)
+    activity.points = points
+
+    user.points = (user.points or 0) + points
+    user.level = calculate_level(user.points, user.level)
+    await db.flush()
     await db.commit()
     await db.refresh(activity)
     await send_kafka_message("activities_created", {
@@ -40,6 +48,7 @@ async def create_activity(
         "type": activity.type,
         "distance": activity.distance,
         "duration": activity.duration,
-        "created_at": activity.created_at.isoformat()
+        "created_at": activity.created_at.isoformat(),
+        "points": activity.points,
     })
     return activity

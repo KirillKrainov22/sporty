@@ -15,6 +15,38 @@ async def _fetch_leaderboard(user_id: int | None = None):
     return await api_client.get_leaderboard()
 
 
+def _extract_value(value):
+    if isinstance(value, dict):
+        for key in ("points", "value", "amount"):
+            if key in value:
+                return value[key]
+    if isinstance(value, (list, tuple)) and value:
+        return value[0]
+    return value
+
+
+def _get_points(entry: dict) -> int:
+    """Safely extract points from leaderboard payloads.
+
+    API returns points aggregated from activities, but to be resilient to
+    possible schema drift we fallback to alternative keys if present.
+    Unlike the previous implementation, we keep legitimate ``0`` values.
+    """
+
+    candidates = [entry.get("points"), entry.get("total_points"), entry.get("score")]
+
+    for raw in candidates:
+        normalized = _extract_value(raw)
+        try:
+            if normalized is not None:
+                return int(normalized)
+        except (TypeError, ValueError):
+            continue
+
+    return 0
+
+
+
 @router.message(Command("leaderboard"))
 async def leaderboard_handler(message: types.Message, state: FSMContext):
     data = await state.get_data()
@@ -35,7 +67,7 @@ async def leaderboard_handler(message: types.Message, state: FSMContext):
     for index, user in enumerate(leaderboard, start=1):
         medal = medals[index - 1] if index <= 3 else f"{index}."
         username = user.get("username") or str(user.get("user_id"))
-        points = user.get("points", 0)
+        points = _get_points(user)
         text += f"{medal} <b>{username}</b> — {points} очков\n"
 
     await message.answer(text)
@@ -62,7 +94,7 @@ async def leaderboard_screen(state: FSMContext):
     for index, user in enumerate(leaderboard, start=1):
         medal = medals[index - 1] if index <= 3 else f"{index}."
         username = user.get("username") or str(user.get("user_id"))
-        text += f"{medal} <b>{username}</b> — {user.get('points', 0)} очков\n"
+        text += f"{medal} <b>{username}</b> — {_get_points(user)} очков\n"
 
     kb = InlineKeyboardMarkup(
         inline_keyboard=[[InlineKeyboardButton(text="⬅ Назад", callback_data="go:menu")]]

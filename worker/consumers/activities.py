@@ -1,12 +1,15 @@
 # worker/consumers/activities.py
 import json
+
 from aiokafka import AIOKafkaConsumer
 
-from worker.db.session import AsyncSessionLocal
-from worker.utils.idempotency.checker import check_and_mark
-from worker.services.stats_service import recalc_user_stats
-from worker.services.achievement_service import check_achievements
-from worker.repositories.activity_repo import get_total_points
+
+from db.session import AsyncSessionLocal
+from utils.idempotency import check_and_mark
+from services.stats_service import recalc_user_stats
+from services.achievement_service import check_achievements
+from repositories.activity_repo import get_total_points
+
 
 async def consume_activities():
     consumer = AIOKafkaConsumer(

@@ -49,6 +49,10 @@ services:
     container_name: sporty_worker
     env_file:
       - .env
+    working_dir: /app/worker
+    command: [ "python", "main.py" ]
+    volumes:
+      - ./worker:/app/worker
     depends_on:
       kafka:
         condition: service_healthy

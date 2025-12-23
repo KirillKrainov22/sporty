@@ -9,6 +9,7 @@ LEVELS = [
     30000,
 ]
 
+
 def calc_level(total_points: int) -> int:
     lvl = 1
     for i, threshold in enumerate(LEVELS):
