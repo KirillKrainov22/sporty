@@ -1,7 +1,7 @@
 # worker/services/stats_service.py
-from repositories.activity_repo import get_total_points, get_daily_points
-from repositories.stats_repo import upsert_user_stats
-from services.level_service import calc_level
+from worker.repositories.activity_repo import get_total_points, get_daily_points
+from worker.repositories.stats_repo import upsert_user_stats
+from worker.services.level_service import calc_level
 
 
 async def recalc_user_stats(session, user_id: int):

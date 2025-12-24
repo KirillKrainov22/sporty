@@ -43,6 +43,7 @@ async def create_activity(
     await db.commit()
     await db.refresh(activity)
     await send_kafka_message("activities_created", {
+        "event_id": str(activity.id),
         "activity_id": activity.id,
         "user_id": activity.user_id,
         "type": activity.type,
