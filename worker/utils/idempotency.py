@@ -1,4 +1,4 @@
-from repositories.event_repo import is_processed, mark_processed
+from worker.repositories.event_repo import is_processed, mark_processed
 
 
 async def check_and_mark(session, event_id: str) -> bool:
